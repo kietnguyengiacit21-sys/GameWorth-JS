@@ -1,79 +1,193 @@
-# GameWorth API – Milestone 1
+# GameWorth Backend - Node.js
 
-Project này đã có:
+Backend này thay Spring Boot bằng:
 
-- Kết nối MySQL.
-- Entity `Game`.
-- `GameRepository`.
-- `GameService`.
-- `GameController`.
-- `GET /api/games`.
-- `GET /api/games/{id}`.
-- SQL tạo bảng và ba game mẫu.
-- Postman collection.
+- Node.js
+- Express
+- MySQL (`mysql2/promise`)
+- JWT
+- bcryptjs
 
-## 1. Chuẩn bị database
+Port vẫn là **8080**, nên React Native Android Emulator vẫn gọi:
 
-Mở MySQL Workbench và chạy:
-
-`database/schema.sql`
-
-Kiểm tra:
-
-```sql
-USE gameworth;
-SELECT * FROM games;
+```text
+http://10.0.2.2:8080/api
 ```
 
-## 2. Sửa mật khẩu MySQL
+## 1. Cài package
 
-Mở:
-
-`src/main/resources/application.properties`
-
-Thay:
-
-```properties
-spring.datasource.password=YOUR_MYSQL_PASSWORD
+```powershell
+cd C:\GW\GameWorth\backend
+npm install
 ```
 
-bằng mật khẩu MySQL thật.
+## 2. Tạo `.env`
 
-Nếu tài khoản MySQL không phải `root`, sửa luôn:
-
-```properties
-spring.datasource.username=root
+```powershell
+Copy-Item .env.example .env
 ```
 
-## 3. Chạy backend
+Mở `.env` và sửa:
 
-Mở terminal tại thư mục project:
-
-```bat
-mvnw.cmd spring-boot:run
+```env
+DB_PASSWORD=MAT_KHAU_MYSQL_CUA_BAN
+JWT_SECRET=mot_chuoi_bi_mat_dai
 ```
 
-Nếu project chưa có Maven Wrapper, dùng:
+## 3. Tạo / cập nhật database
 
-```bat
-mvn spring-boot:run
+Mở MySQL Workbench rồi chạy:
+
+```text
+backend/database/schema.sql
 ```
 
-Hoặc mở bằng IntelliJ rồi chạy `GameWorthApiApplication`.
+Script dùng `CREATE TABLE IF NOT EXISTS`, nên bảng `games` hiện tại không bị xóa.
 
-## 4. Test
+## 4. Chạy backend
 
-Mở trình duyệt:
+```powershell
+npm run dev
+```
 
-- http://localhost:8080/api/games
-- http://localhost:8080/api/games/1
+hoặc:
 
-Kết quả phải là JSON.
+```powershell
+npm start
+```
 
-## 5. Lưu ý Android Emulator
+## 5. Test nhanh
 
-Sau này mobile không dùng `localhost` để gọi backend trên máy tính.
+Browser:
 
-Android Emulator sẽ dùng:
+```text
+http://localhost:8080/api/health
+http://localhost:8080/api/games
+http://localhost:8080/api/games/1
+```
 
-`http://10.0.2.2:8080/api`
+## API chính
+
+### Games
+
+```text
+GET /api/games
+GET /api/games/:id
+```
+
+### Auth
+
+```text
+POST /api/auth/register
+POST /api/auth/login
+```
+
+Register body:
+
+```json
+{
+  "username": "kiet",
+  "email": "kiet@example.com",
+  "password": "123456",
+  "displayName": "Kiet"
+}
+```
+
+`username` có thể bỏ.
+
+Login chấp nhận `email`, `username`, hoặc `identifier`.
+
+```json
+{
+  "email": "kiet@example.com",
+  "password": "123456"
+}
+```
+
+Response:
+
+```json
+{
+  "token": "...",
+  "user": {
+    "id": 1,
+    "username": "kiet",
+    "email": "kiet@example.com",
+    "displayName": "Kiet"
+  }
+}
+```
+
+### Profile
+
+Cần header:
+
+```text
+Authorization: Bearer <token>
+```
+
+```text
+GET /api/users/me
+PUT /api/users/me
+```
+
+### Reviews
+
+Đọc review không cần login:
+
+```text
+GET /api/games/:gameId/reviews
+GET /api/reviews/:id
+```
+
+Create/update/delete cần Bearer token:
+
+```text
+POST /api/games/:gameId/reviews
+PUT /api/reviews/:id
+DELETE /api/reviews/:id
+GET /api/users/me/reviews
+```
+
+Review body:
+
+```json
+{
+  "rating": 5,
+  "verdict": "WORTH_IT",
+  "comment": "Great game"
+}
+```
+
+`rating`: 1 đến 5.
+
+`verdict`:
+
+```text
+WORTH_IT
+NOT_WORTH_IT
+```
+
+## Lưu ý mobile
+
+`GET /api/games` và `GET /api/games/:id` trả field camelCase giống Spring Boot cũ:
+
+```text
+releaseDate
+coverImageUrl
+trailerUrl
+minimumRequirements
+recommendedRequirements
+createdAt
+updatedAt
+```
+
+Vì vậy phần Games hiện tại không cần đổi URL hay field.
+
+Các API profile/review cần JWT. Khi làm Auth, mobile phải gắn:
+
+```text
+Authorization: Bearer <token>
+```
+
+vào request protected.

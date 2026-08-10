@@ -40,3 +40,6 @@ Thumbs.db
 mobile_before_js_*
 _source_backup_*
 mobile/.bundle/
+backend_spring_backup_*
+backend/node_modules/
+backend/.env
