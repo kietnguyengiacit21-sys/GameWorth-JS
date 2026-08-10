@@ -1,0 +1,42 @@
+﻿# IDE
+.idea/
+.vscode/
+*.iml
+
+# Backend generated files
+backend/.idea/
+backend/target/
+
+# React Native dependencies
+mobile/node_modules/
+
+# Android generated files
+mobile/android/.gradle/
+mobile/android/.cxx/
+mobile/android/app/.cxx/
+mobile/android/build/
+mobile/android/app/build/
+mobile/android/local.properties
+
+# iOS generated files
+mobile/ios/Pods/
+mobile/ios/build/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Test / coverage
+mobile/coverage/
+
+# Temporary files
+*.log
+Thumbs.db
+.DS_Store
+
+# Old skeleton / migration backups
+*.before-team-skeleton
+mobile_before_js_*
+_source_backup_*
+mobile/.bundle/
