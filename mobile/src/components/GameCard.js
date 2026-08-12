@@ -1,58 +1,154 @@
 import React from 'react';
 import {
-  Image,
+  ImageBackground,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { colors } from '../theme/colors';
 
-import {colors} from '../theme/colors';
-function GameCard({game, onPress}) {
+
+function GameCard(props) {
+  const game = props.game;
+  const onPress = props.onPress;
+  let priceText = 'Free';
+  if (Number(game.price) !== 0) {
+    const priceNumber = Number(game.price);
+    priceText = '$' + priceNumber.toFixed(2);
+  }
+
+  let genreText = 'Unknown genre';
+
+  if (game.genre) {
+    genreText = game.genre;
+  }
+
+  let metadataText = genreText;
+
+  if (game.platform) {
+    metadataText =
+      metadataText + ' • ' + game.platform;
+  }
+  function getCardStyle(info) {
+    const pressed = info.pressed;
+    if (pressed) {
+      return [
+        styles.card,
+        styles.pressed
+      ];
+    }
+    return styles.card;
+  }
+
+  if (!game.coverImageUrl) {
+    let firstLetter = '';
+    if (game.title) {
+      firstLetter =
+        game.title.charAt(0).toUpperCase();
+    }
+    return (
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPress}
+        style={getCardStyle}
+      >
+        <View style={styles.fallback}>
+          <Text style={styles.coverLetter}>
+            {firstLetter}
+          </Text>
+          <View style={styles.info}>
+            <Text
+              numberOfLines={1}
+              style={styles.title}
+            >
+              {game.title}
+            </Text>
+            <Text style={styles.price}>
+              {priceText}
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={styles.metadata}
+            >
+              {metadataText}
+            </Text>
+
+          </View>
+
+        </View>
+
+      </Pressable>
+    );
+  }
+
+  const imageSource = {
+    uri: game.coverImageUrl
+  };
+
   return (
+
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={({pressed}) => [
-        styles.card,
-        pressed && styles.pressed,
-      ]}>
-      {game.coverImageUrl ? (
-        <Image
-          source={{uri: game.coverImageUrl}}
-          style={styles.cover}
-        />
-      ) : (
-        <View style={[styles.cover, styles.coverFallback]}>
-          <Text style={styles.coverLetter}>
-            {game.title.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-      )}
+      style={getCardStyle}
+    >
 
-      <View style={styles.info}>
-        <View style={styles.titleRow}>
-          <Text numberOfLines={1} style={styles.title}>
-            {game.title}
-          </Text>
-          <Text style={styles.price}>
-            {Number(game.price) === 0
-              ? 'Free'
-              : `$${Number(game.price).toFixed(2)}`}
-          </Text>
+      <ImageBackground
+        source={imageSource}
+        resizeMode="cover"
+        style={styles.backgroundImage}
+        imageStyle={styles.imageBorder}
+
+        onError={function (event) {
+          console.log(
+            'IMAGE ERROR:',
+            game.title,
+            game.coverImageUrl,
+            event.nativeEvent
+          );
+        }}
+      >
+
+        <View style={styles.overlay}>
+
+          <View style={styles.info}>
+
+            <Text
+              numberOfLines={1}
+              style={styles.title}
+            >
+              {game.title}
+            </Text>
+
+
+            <Text style={styles.price}>
+              {priceText}
+            </Text>
+
+
+            <Text
+              numberOfLines={1}
+              style={styles.metadata}
+            >
+              {metadataText}
+            </Text>
+
+          </View>
+
         </View>
 
-        <Text numberOfLines={1} style={styles.metadata}>
-          {game.genre || 'Unknown genre'}
-          {game.platform ? ` • ${game.platform}` : ''}
-        </Text>
-      </View>
+      </ImageBackground>
+
     </Pressable>
   );
 }
 
+
 const styles = StyleSheet.create({
+
   card: {
+    height: 190,
     marginBottom: 14,
     overflow: 'hidden',
     borderRadius: 16,
@@ -60,47 +156,64 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
+
   pressed: {
     opacity: 0.85,
   },
-  cover: {
-    width: '100%',
-    height: 150,
+
+  backgroundImage: {
+    flex: 1,
   },
-  coverFallback: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceHigh,
+
+  imageBorder: {
+    borderRadius: 16,
   },
-  coverLetter: {
-    color: colors.primary,
-    fontSize: 48,
-    fontWeight: '900',
+
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.40)',
   },
+
   info: {
     padding: 14,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
+
   title: {
-    flex: 1,
-    color: colors.text,
+    color: '#FFFFFF',
     fontSize: 19,
     fontWeight: '800',
   },
+
   price: {
-    color: colors.text,
+    marginTop: 5,
+    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '800',
   },
+
   metadata: {
     marginTop: 5,
-    color: colors.textMuted,
+    color: '#DDDDDD',
     fontSize: 13,
   },
+
+  fallback: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: colors.surfaceHigh,
+  },
+
+  coverLetter: {
+    position: 'absolute',
+    alignSelf: 'center',
+    top: 45,
+    color: colors.primary,
+    fontSize: 60,
+    fontWeight: '900',
+  },
+
 });
+
 
 export default GameCard;
