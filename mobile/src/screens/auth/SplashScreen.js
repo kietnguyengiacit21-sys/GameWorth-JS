@@ -15,65 +15,87 @@ function SplashScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <View style={styles.brand}>
-          <Text style={styles.logo}>GameWorth</Text>
-          <Text style={styles.tagline}>Discover top games, track your ratings, and join a community of players.</Text>
+        <View style={styles.centered}>
+          <View style={styles.iconContainer}>
+            <Text style={styles.iconText}>G</Text>
+          </View>
+          <Text style={styles.title}>GAME</Text>
+          <Text style={styles.subtitle}>WORTH</Text>
         </View>
-
-        <View style={styles.hero}>
-          <Text style={styles.heroTitle}>Your next favorite game starts here.</Text>
-        </View>
-
-        <Pressable style={styles.action} onPress={() => navigation.replace('Onboarding')}>
-          <Text style={styles.actionText}>Continue</Text>
-        </Pressable>
+        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.footer}>2026 GAMEWORTH, INC.</Text>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {flex: 1, backgroundColor: colors.background},
+  safeArea: {flex: 1, backgroundColor: '#000'},
   container: {
     flex: 1,
     padding: 28,
     justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#000',
   },
-  brand: {
-    marginTop: 48,
-  },
-  logo: {
-    color: colors.primary,
-    fontSize: 36,
-    fontWeight: '900',
-  },
-  tagline: {
-    marginTop: 14,
-    color: colors.textMuted,
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  hero: {
+  centered: {
     flex: 1,
     justifyContent: 'center',
-  },
-  heroTitle: {
-    color: colors.text,
-    fontSize: 32,
-    fontWeight: '900',
-    lineHeight: 40,
-  },
-  action: {
-    marginBottom: 28,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    paddingVertical: 16,
     alignItems: 'center',
   },
-  actionText: {
-    color: colors.onPrimary,
-    fontSize: 16,
+  title: {
+    color: '#3cff6e',
+    fontSize: 48,
     fontWeight: '900',
+    letterSpacing: 2,
+    textShadowColor: 'rgba(60,255,110,0.4)',
+    textShadowOffset: {width: 0, height: 0},
+    textShadowRadius: 20,
+  },
+  subtitle: {
+    color: '#3cff6e',
+    fontSize: 42,
+    fontWeight: '900',
+    letterSpacing: 2,
+    textShadowColor: 'rgba(60,255,110,0.35)',
+    textShadowOffset: {width: 0, height: 0},
+    textShadowRadius: 18,
+    marginTop: -6,
+  },
+  iconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    backgroundColor: 'rgba(60,255,110,0.12)',
+    borderWidth: 1,
+    borderColor: '#3cff6e',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 22,
+    shadowColor: '#3cff6e',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    elevation: 6,
+  },
+  iconText: {
+    color: '#3cff6e',
+    fontSize: 32,
+    fontWeight: '900',
+    textShadowColor: 'rgba(60,255,110,0.4)',
+    textShadowOffset: {width: 0, height: 0},
+    textShadowRadius: 16,
+  },
+  loadingText: {
+    color: '#7fff9d',
+    fontSize: 18,
+    marginBottom: 24,
+  },
+  footer: {
+    color: '#2fe27d',
+    fontSize: 12,
+    marginBottom: 18,
+    letterSpacing: 1,
   },
 });
 
