@@ -1,189 +1,464 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {
-  Image,
+  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import {useDispatch, useSelector} from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import LoadingState from '../../components/LoadingState';
-import {fetchGameDetail} from '../../features/games/gamesSlice';
-import {colors} from '../../theme/colors';
+import { fetchGameDetail } from '../../features/games/gamesSlice';
+import { colors } from '../../theme/colors';
 
-function GameDetailScreen({navigation, route}) {
-  const {gameId} = route.params;
+
+function GameDetailScreen(props) {
+  const navigation = props.navigation;
+  const route = props.route;
+  const gameId = route.params.gameId;
+  const scrollRef = React.useRef(null);
   const dispatch = useDispatch();
 
-  const {items, selectedGame, detailLoading, error} =
-    useSelector(state => state.games);
+  const gamesState = useSelector(function (state) {
+    return state.games;
+  });
 
-  const cachedGame = items.find(game => game.id === gameId);
-  const game =
-    selectedGame?.id === gameId
-      ? selectedGame
-      : cachedGame ?? null;
+  const items = gamesState.items;
+  const selectedGame = gamesState.selectedGame;
+  const detailLoading = gamesState.detailLoading;
+  const error = gamesState.error;
 
-  useEffect(() => {
+  function findGameById() {
+    for (let i = 0; i < items.length; i++) {
+      const currentGame = items[i];
+
+      if (currentGame.id === gameId) {
+        return currentGame;
+      }
+    }
+
+    return null;
+  }
+
+  useFocusEffect(
+    React.useCallback(function () {
+      if (scrollRef.current != null) {
+        scrollRef.current.scrollTo({
+          y: 0,
+          animated: false,
+        });
+      }
+    }, [])
+  );
+
+  const cachedGame = findGameById();
+  let game = null;
+  if (selectedGame != null && selectedGame.id === gameId) {
+    game = selectedGame;
+  } else if (cachedGame != null) {
+    game = cachedGame;
+  }
+
+
+  React.useEffect(function () {
     dispatch(fetchGameDetail(gameId));
   }, [dispatch, gameId]);
 
-  if (detailLoading && !game) {
-    return <LoadingState message="Loading game detail..." />;
+
+  if (detailLoading && game == null) {
+    return (
+      <LoadingState message="Loading game detail..." />
+    );
   }
 
-  if (!game) {
+  if (game == null) {
+    let errorMessage = 'Game data was not found.';
+    if (error != null) {
+      errorMessage = error;
+    }
     return (
       <View style={styles.centerState}>
         <Text style={styles.errorTitle}>
           Cannot open this game
         </Text>
+
         <Text style={styles.errorText}>
-          {error || 'Game data was not found.'}
+          {errorMessage}
         </Text>
       </View>
     );
   }
 
-  return (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      style={styles.screen}>
-      {game.coverImageUrl ? (
-        <Image
-          source={{uri: game.coverImageUrl}}
-          style={styles.cover}
-        />
-      ) : (
-        <View style={[styles.cover, styles.coverFallback]}>
-          <Text style={styles.coverLetter}>
-            {game.title.charAt(0)}
+  let priceText = 'Free';
+  const priceNumber = Number(game.price);
+  if (priceNumber !== 0) {
+    priceText = '$' + priceNumber.toFixed(2);
+  }
+
+  let genreText = 'Unknown genre';
+  if (game.genre != null && game.genre !== '') {
+    genreText = game.genre;
+  }
+
+
+  let developerText = 'Not available';
+  if (game.developer != null && game.developer !== '') {
+    developerText = game.developer;
+  }
+
+  let publisherText = 'Not available';
+  if (game.publisher != null && game.publisher !== '') {
+    publisherText = game.publisher;
+  }
+
+  let releaseDateText = 'Not available';
+  if (game.releaseDate != null && game.releaseDate !== '') {
+    releaseDateText = game.releaseDate;
+  }
+
+  let descriptionText = 'No description available.';
+  if (game.description != null && game.description !== '') {
+    descriptionText = game.description;
+  }
+
+  let heroContent;
+  if (game.coverImageUrl != null && game.coverImageUrl !== '') {
+    const imageSource = {
+      uri: game.coverImageUrl,
+    };
+
+    heroContent = (
+      <ImageBackground
+        source={imageSource}
+        style={styles.hero}
+        resizeMode="cover"
+      >
+        <View style={styles.heroOverlay}>
+          <View style={styles.heroBottom}>
+            <Text style={styles.price}>
+              {priceText}
+            </Text>
+
+            <Text style={styles.title}>
+              {game.title}
+            </Text>
+
+            <Text style={styles.heroMetadata}>
+              {genreText} • {publisherText}
+            </Text>
+          </View>
+        </View>
+      </ImageBackground>
+    );
+  } else {
+    heroContent = (
+      <View style={styles.heroFallback}>
+        <View style={styles.heroBottom}>
+          <Text style={styles.price}>
+            {priceText}
+          </Text>
+
+          <Text style={styles.title}>
+            {game.title}
+          </Text>
+
+          <Text style={styles.heroMetadata}>
+            {genreText} • {publisherText}
           </Text>
         </View>
-      )}
-
-      <Text style={styles.title}>{game.title}</Text>
-      <Text style={styles.metadata}>
-        {game.genre || 'Unknown genre'}
-        {game.platform ? ` • ${game.platform}` : ''}
-      </Text>
-      <Text style={styles.price}>
-        {Number(game.price) === 0
-          ? 'Free'
-          : `$${Number(game.price).toFixed(2)}`}
-      </Text>
-
-      <Text style={styles.sectionTitle}>Overview</Text>
-      <Text style={styles.description}>
-        {game.description || 'No description available.'}
-      </Text>
-
-      <View style={styles.buttonGrid}>
-        <Pressable
-          onPress={() =>
-            navigation.navigate('GameMedia', {gameId})
-          }
-          style={styles.linkButton}>
-          <Text style={styles.linkText}>Game Media</Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() =>
-            navigation.navigate('SystemRequirements', {gameId})
-          }
-          style={styles.linkButton}>
-          <Text style={styles.linkText}>Requirements</Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() =>
-            navigation.navigate('CommunityRating', {gameId})
-          }
-          style={styles.linkButton}>
-          <Text style={styles.linkText}>Community Rating</Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() =>
-            navigation.navigate('ReviewList', {gameId})
-          }
-          style={styles.linkButton}>
-          <Text style={styles.linkText}>Reviews</Text>
-        </Pressable>
       </View>
+    );
+  }
+
+  function openGameMedia() {
+    navigation.navigate('GameMedia', {
+      gameId: gameId,
+    });
+  }
+
+
+  function openRequirements() {
+    navigation.navigate('SystemRequirements', {
+      gameId: gameId,
+    });
+  }
+
+
+  function openCommunityRating() {
+    navigation.navigate('CommunityRating', {
+      gameId: gameId,
+    });
+  }
+
+  function openReviews() {
+    navigation.navigate('ReviewList', {
+      gameId: gameId,
+    });
+  }
+
+  return (
+    <ScrollView
+      ref={scrollRef}
+      style={styles.screen}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.content}
+    >
+      {heroContent}
+      <View style={styles.body}>
+        <Text style={styles.sectionTitle}>
+          About This Game
+        </Text>
+        <Text style={styles.description}>
+          {descriptionText}
+        </Text>
+        <View style={styles.divider} />
+        <View style={styles.informationGrid}>
+          <View style={styles.informationItem}>
+            <Text style={styles.informationLabel}>
+              DEVELOPER
+            </Text>
+            <Text style={styles.informationValue}>
+              {developerText}
+            </Text>
+          </View>
+          <View style={styles.informationItem}>
+            <Text style={styles.informationLabel}>
+              PUBLISHER
+            </Text>
+
+            <Text style={styles.informationValue}>
+              {publisherText}
+            </Text>
+          </View>
+          <View style={styles.informationItem}>
+            <Text style={styles.informationLabel}>
+              RELEASE DATE
+            </Text>
+            <Text style={styles.informationValue}>
+              {releaseDateText}
+            </Text>
+          </View>
+
+        </View>
+
+        <View style={styles.actionGrid}>
+          <Pressable
+            onPress={openGameMedia}
+            style={styles.actionCard}
+          >
+            <Text style={styles.actionIcon}>
+              ▣
+            </Text>
+            <Text style={styles.actionTitle}>
+              Game Media
+            </Text>
+            <Text style={styles.actionDescription}>
+              Screenshots and trailer
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={openRequirements}
+            style={styles.actionCard}
+          >
+            <Text style={styles.actionIcon}>
+              ⚙
+            </Text>
+            <Text style={styles.actionTitle}>
+              System Specs
+            </Text>
+            <Text style={styles.actionDescription}>
+              Minimum and recommended
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={openCommunityRating}
+            style={styles.actionCard}
+          >
+            <Text style={styles.actionIcon}>
+              ▥
+            </Text>
+            <Text style={styles.actionTitle}>
+              Community
+            </Text>
+            <Text style={styles.actionDescription}>
+              Worth It ratings
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={openReviews}
+            style={styles.actionCard}
+          >
+            <Text style={styles.actionIcon}>
+              ★
+            </Text>
+            <Text style={styles.actionTitle}>
+              Reviews
+            </Text>
+            <Text style={styles.actionDescription}>
+              Player opinions
+            </Text>
+          </Pressable>
+
+        </View>
+
+      </View>
+
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
   },
+
   content: {
-    padding: 18,
-    paddingBottom: 40,
+    paddingBottom: 45,
   },
-  cover: {
+
+  hero: {
     width: '100%',
-    height: 210,
-    borderRadius: 18,
+    height: 380,
   },
-  coverFallback: {
-    alignItems: 'center',
-    justifyContent: 'center',
+
+  heroFallback: {
+    width: '100%',
+    height: 380,
+    justifyContent: 'flex-end',
     backgroundColor: colors.surfaceHigh,
   },
-  coverLetter: {
-    color: colors.primary,
-    fontSize: 64,
-    fontWeight: '900',
+
+  heroOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.40)',
   },
-  title: {
-    marginTop: 20,
-    color: colors.text,
-    fontSize: 30,
-    fontWeight: '900',
+
+  heroBottom: {
+    paddingHorizontal: 20,
+    paddingBottom: 28,
   },
-  metadata: {
-    marginTop: 6,
-    color: colors.textMuted,
-  },
+
   price: {
-    marginTop: 12,
-    color: colors.primary,
-    fontSize: 21,
-    fontWeight: '900',
-  },
-  sectionTitle: {
-    marginTop: 28,
-    color: colors.text,
-    fontSize: 20,
+    marginBottom: 10,
+    color: '#4EDEA3',
+    fontSize: 22,
     fontWeight: '800',
   },
-  description: {
-    marginTop: 10,
-    color: colors.textMuted,
-    fontSize: 15,
-    lineHeight: 24,
+
+  title: {
+    color: '#FFFFFF',
+    fontSize: 42,
+    fontWeight: '900',
+    lineHeight: 48,
   },
-  buttonGrid: {
+
+  heroMetadata: {
+    marginTop: 8,
+    color: '#BBCABF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  body: {
+    paddingHorizontal: 20,
+    paddingTop: 28,
+  },
+
+
+  sectionTitle: {
+    color: colors.text,
+    fontSize: 24,
+    fontWeight: '900',
+  },
+
+
+  description: {
+    marginTop: 13,
+    color: colors.textMuted,
+    fontSize: 16,
+    lineHeight: 25,
+  },
+
+
+  divider: {
+    height: 1,
     marginTop: 24,
+    marginBottom: 22,
+    backgroundColor: '#353436',
+  },
+
+  informationGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    marginBottom: 12,
   },
-  linkButton: {
-    paddingHorizontal: 13,
-    paddingVertical: 11,
-    borderRadius: 11,
-    backgroundColor: colors.surfaceHigh,
+
+
+  informationItem: {
+    width: '50%',
+    marginBottom: 22,
+    paddingRight: 12,
   },
-  linkText: {
-    color: colors.primary,
+
+
+  informationLabel: {
+    color: '#BBCABF',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+
+
+  informationValue: {
+    marginTop: 6,
+    color: colors.text,
+    fontSize: 16,
     fontWeight: '800',
   },
+
+  actionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+
+  actionCard: {
+    width: '48%',
+    minHeight: 145,
+    marginBottom: 14,
+    padding: 16,
+    borderRadius: 18,
+    backgroundColor: '#201F20',
+  },
+
+  actionIcon: {
+    color: '#4EDEA3',
+    fontSize: 25,
+    fontWeight: '900',
+  },
+
+  actionTitle: {
+    marginTop: 18,
+    color: colors.text,
+    fontSize: 17,
+    fontWeight: '800',
+  },
+
+  actionDescription: {
+    marginTop: 6,
+    color: colors.textMuted,
+    fontSize: 11,
+    lineHeight: 16,
+  },
+
   centerState: {
     flex: 1,
     alignItems: 'center',
@@ -191,16 +466,22 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: colors.background,
   },
+
+
   errorTitle: {
     color: colors.error,
     fontSize: 20,
     fontWeight: '800',
   },
+
+
   errorText: {
     marginTop: 8,
     color: colors.textMuted,
     textAlign: 'center',
   },
+
 });
+
 
 export default GameDetailScreen;
