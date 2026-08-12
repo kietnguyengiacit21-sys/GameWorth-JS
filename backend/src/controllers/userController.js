@@ -74,6 +74,27 @@ async function updateMe(req, res, next) {
   }
 }
 
+async function uploadAvatar(req, res, next) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({message: 'No file uploaded'});
+    }
+
+    const filename = req.file.filename;
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const avatarUrl = `${protocol}://${host}/uploads/${filename}`;
+
+    const user = await userRepository.update(req.userId, {
+      avatarUrl,
+    });
+
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function getMyReviews(req, res, next) {
   try {
     const reviews = await reviewRepository.findByUserId(req.userId);

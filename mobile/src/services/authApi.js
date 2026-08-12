@@ -13,3 +13,17 @@ export function register(request) {
     body: JSON.stringify(request),
   });
 }
+
+export function forgotPassword(request) {
+  return apiRequest('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+
+export function resetPassword(request) {
+  return apiRequest('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}

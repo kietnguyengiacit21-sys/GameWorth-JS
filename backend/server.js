@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const pool = require('./src/config/db');
 const gameRoutes = require('./src/routes/gameRoutes');
@@ -14,6 +15,9 @@ const PORT = Number(process.env.PORT || 8080);
 
 app.use(cors());
 app.use(express.json());
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/api/health', async (req, res) => {
   try {

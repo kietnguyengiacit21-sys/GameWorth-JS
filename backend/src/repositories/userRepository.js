@@ -43,6 +43,80 @@ async function findAuthByIdentifier(identifier) {
   return rows[0] || null;
 }
 
+async function findAuthByEmail(email) {
+  const [rows] = await pool.query(
+    `
+      SELECT
+        id,
+        username,
+        email,
+        password_hash AS passwordHash,
+        display_name AS displayName,
+        avatar_url AS avatarUrl,
+        DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%s') AS createdAt,
+        DATE_FORMAT(updated_at, '%Y-%m-%dT%H:%i:%s') AS updatedAt
+      FROM users
+      WHERE email = ?
+      LIMIT 1
+    `,
+    [email],
+  );
+
+  return rows[0] || null;
+}
+
+async function createPasswordResetToken(userId, tokenHash, expiresAt) {
+  await pool.query(
+    `
+      INSERT INTO password_reset_tokens (
+        user_id,
+        token_hash,
+        expires_at
+      ) VALUES (?, ?, ?)
+    `,
+    [userId, tokenHash, expiresAt],
+  );
+}
+
+async function findPasswordResetTokenByHash(tokenHash) {
+  const [rows] = await pool.query(
+    `
+      SELECT
+        id,
+        user_id AS userId,
+        token_hash AS tokenHash,
+        expires_at AS expiresAt
+      FROM password_reset_tokens
+      WHERE token_hash = ?
+      LIMIT 1
+    `,
+    [tokenHash],
+  );
+
+  return rows[0] || null;
+}
+
+async function deletePasswordResetTokenById(id) {
+  await pool.query(
+    `DELETE FROM password_reset_tokens WHERE id = ?`,
+    [id],
+  );
+}
+
+async function deletePasswordResetTokensByUserId(userId) {
+  await pool.query(
+    `DELETE FROM password_reset_tokens WHERE user_id = ?`,
+    [userId],
+  );
+}
+
+async function setPassword(userId, passwordHash) {
+  await pool.query(
+    `UPDATE users SET password_hash = ? WHERE id = ?`,
+    [passwordHash, userId],
+  );
+}
+
 async function emailExists(email, exceptUserId = null) {
   let sql = 'SELECT id FROM users WHERE email = ?';
   const params = [email];
@@ -135,6 +209,12 @@ async function update(id, fields) {
 module.exports = {
   findPublicById,
   findAuthByIdentifier,
+  findAuthByEmail,
+  createPasswordResetToken,
+  findPasswordResetTokenByHash,
+  deletePasswordResetTokenById,
+  deletePasswordResetTokensByUserId,
+  setPassword,
   emailExists,
   usernameExists,
   create,
