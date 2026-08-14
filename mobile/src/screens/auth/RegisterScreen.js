@@ -124,11 +124,16 @@ function RegisterScreen() {
 
 const styles = StyleSheet.create({
   safeArea: {flex: 1, backgroundColor: colors.background},
-  container: {flex: 1, justifyContent: 'space-between', padding: 24},
-  header: {marginTop: 24},
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+  },
+  header: {marginTop: 0},
   title: {color: colors.primary, fontSize: 32, fontWeight: '900'},
   subtitle: {marginTop: 10, color: colors.textMuted, fontSize: 15, lineHeight: 22},
-  form: {marginTop: 30},
+  form: {marginTop: 30, width: '100%'},
   footer: {flexDirection: 'row', justifyContent: 'center', marginTop: 24},
   footerText: {color: colors.textMuted},
   footerLink: {color: colors.primary, fontWeight: '800'},

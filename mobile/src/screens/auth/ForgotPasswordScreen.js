@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 
 import FormInput from '../../components/FormInput';
 import PrimaryButton from '../../components/PrimaryButton';
@@ -14,6 +15,7 @@ import {colors} from '../../theme/colors';
 import {forgotPassword, resetPassword} from '../../services/authApi';
 
 function ForgotPasswordScreen() {
+  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -82,11 +84,19 @@ function ForgotPasswordScreen() {
         password,
       });
 
-      setMessage(response.message || 'Your password has been changed successfully.');
+      const successMessage = response.message || 'Your password has been changed successfully.';
+      setMessage(successMessage);
       setPassword('');
       setConfirmPassword('');
       setShowResetForm(false);
       setResetToken('');
+
+      setTimeout(() => {
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'Login'}],
+        });
+      }, 1200);
     } catch (err) {
       setError(err.message || 'Unable to reset password. Please try again.');
     } finally {
@@ -158,11 +168,16 @@ function ForgotPasswordScreen() {
 
 const styles = StyleSheet.create({
   safeArea: {flex: 1, backgroundColor: colors.background},
-  container: {flex: 1, justifyContent: 'space-between', padding: 24},
-  header: {marginTop: 24},
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+  },
+  header: {marginTop: 0},
   title: {color: colors.primary, fontSize: 32, fontWeight: '900'},
   subtitle: {marginTop: 10, color: colors.textMuted, fontSize: 15, lineHeight: 22},
-  form: {marginTop: 30},
+  form: {marginTop: 30, width: '100%'},
   errorText: {
     color: colors.error,
     marginBottom: 16,
