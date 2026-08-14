@@ -13,11 +13,15 @@ const reviewRoutes = require('./src/routes/reviewRoutes');
 const app = express();
 const PORT = Number(process.env.PORT || 8080);
 
+app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 app.use(cors());
 app.use(express.json());
 
+
+
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 
 app.get('/api/health', async (req, res) => {
   try {
