@@ -46,9 +46,12 @@ async function register(req, res, next) {
 
     const token = createToken(user.id);
 
+    // Fetch complete user data including bio and stats
+    const completeUser = await userRepository.findPublicById(user.id);
+
     res.status(201).json({
       token,
-      user,
+      user: completeUser,
     });
   } catch (error) {
     next(error);
@@ -93,11 +96,12 @@ async function login(req, res, next) {
 
     const token = createToken(user.id);
 
-    delete user.passwordHash;
+    // Fetch complete user data including bio and stats
+    const completeUser = await userRepository.findPublicById(user.id);
 
     res.json({
       token,
-      user,
+      user: completeUser,
     });
   } catch (error) {
     next(error);

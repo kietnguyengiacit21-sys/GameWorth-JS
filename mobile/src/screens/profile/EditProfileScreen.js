@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -21,12 +21,21 @@ function EditProfileScreen() {
   const token = useSelector(state => state.auth.token);
   const dispatch = useDispatch();
   const [name, setName] = useState(user.displayName || '');
+  const [username, setUsername] = useState(user.username || '');
   const [email, setEmail] = useState(user.email || '');
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl || '');
   const [bio, setBio] = useState(user.bio || '');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Auto-clear success message after 3 seconds
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(''), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   async function handleSave() {
     setError('');
@@ -43,8 +52,10 @@ function EditProfileScreen() {
       const response = await updateMe(
         {
           displayName: name.trim(),
+          username: username.trim() || null,
           email: email.trim().toLowerCase(),
           avatarUrl: avatarUrl.trim() || null,
+          bio: bio.trim() || null,
         },
         token,
       );
@@ -81,6 +92,7 @@ function EditProfileScreen() {
             autoCapitalize="none"
           />
           <FormInput label="Display name" value={name} onChangeText={setName} placeholder="Game Worth" autoCapitalize="words" />
+          <FormInput label="Username" value={username} onChangeText={setUsername} placeholder="gameworthfan" autoCapitalize="none" />
           <FormInput label="Email" value={email} onChangeText={setEmail} placeholder="hello@example.com" keyboardType="email-address" autoCapitalize="none" />
           <FormInput label="Bio" value={bio} onChangeText={setBio} placeholder="Avid action RPG player..." multiline numberOfLines={4} />
 
@@ -103,7 +115,18 @@ const styles = StyleSheet.create({
   form: {marginTop: 30},
   photoLabel: {color: colors.textMuted, marginTop: 12, marginBottom: 16, fontSize: 13},
   errorText: {color: colors.error, marginBottom: 16, textAlign: 'center'},
-  messageText: {color: colors.primary, marginBottom: 16, textAlign: 'center'},
+  messageText: {
+    backgroundColor: colors.primary,
+    color: '#ffffff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 16,
+    marginBottom: 16,
+    textAlign: 'center',
+    fontWeight: '600',
+    fontSize: 14,
+  },
   avatarPreview: {
     width: 96,
     height: 96,

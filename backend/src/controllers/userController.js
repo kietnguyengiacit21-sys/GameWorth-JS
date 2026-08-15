@@ -37,6 +37,10 @@ async function updateMe(req, res, next) {
       fields.avatarUrl = req.body.avatarUrl?.trim() || null;
     }
 
+    if (req.body.bio !== undefined) {
+      fields.bio = req.body.bio?.trim() || null;
+    }
+
     if (fields.email === '') {
       return res.status(400).json({
         message: 'Email cannot be empty',

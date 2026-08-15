@@ -53,7 +53,7 @@ function ProfileScreen() {
 
 
   // =========================================
-  // Guest Profile
+  // Guest
   // =========================================
 
   if (isGuest) {
@@ -88,7 +88,11 @@ function ProfileScreen() {
           <View style={styles.guestSpace} />
 
           <View style={styles.guestActions}>
-            <PrimaryButton title="Log In" onPress={openLogin} style={styles.loginButton} />
+            <PrimaryButton
+              title="Log In"
+              onPress={openLogin}
+              style={styles.loginButton}
+            />
 
             <Pressable onPress={openRegister} style={styles.registerButton}>
               <Text style={styles.registerText}>Register</Text>
@@ -101,7 +105,7 @@ function ProfileScreen() {
 
 
   // =========================================
-  // Logged-in Profile Data
+  // User data
   // =========================================
 
   let displayName = 'Player';
@@ -111,9 +115,16 @@ function ProfileScreen() {
   }
 
 
+  let username = '';
+
+  if (user.username != null && user.username !== '') {
+    username = user.username;
+  }
+
+
   let email = '';
 
-  if (user.email != null) {
+  if (user.email != null && user.email !== '') {
     email = user.email;
   }
 
@@ -125,10 +136,55 @@ function ProfileScreen() {
   }
 
 
+  let reviewCount = 0;
+
+  if (user.reviewCount != null) {
+    reviewCount = user.reviewCount;
+  }
+
+
+  let wishlistCount = 0;
+
+  if (user.wishlistCount != null) {
+    wishlistCount = user.wishlistCount;
+  }
+
+
+  let averageRating = 0;
+
+  if (user.averageRating != null) {
+    averageRating = user.averageRating;
+  }
+
+
+  // =========================================
+  // Username content
+  // =========================================
+
+  let usernameContent = null;
+
+  if (username !== '') {
+    usernameContent = (
+      <Text style={styles.username}>
+        @{username}
+      </Text>
+    );
+  }
+
+
+  // =========================================
+  // Avatar
+  // =========================================
+
   let avatarContent;
 
   if (user.avatarUrl != null && user.avatarUrl !== '') {
-    avatarContent = <Image source={{uri: user.avatarUrl}} style={styles.avatar} />;
+    avatarContent = (
+      <Image
+        source={{uri: user.avatarUrl}}
+        style={styles.avatar}
+      />
+    );
   } else {
     let firstLetter = 'P';
 
@@ -138,7 +194,9 @@ function ProfileScreen() {
 
     avatarContent = (
       <View style={styles.avatarFallback}>
-        <Text style={styles.avatarLetter}>{firstLetter}</Text>
+        <Text style={styles.avatarLetter}>
+          {firstLetter}
+        </Text>
       </View>
     );
   }
@@ -174,44 +232,80 @@ function ProfileScreen() {
                 <Text style={styles.badge}>PROFILE</Text>
               </View>
 
-              <Text style={styles.title} numberOfLines={1}>{displayName}</Text>
-              <Text style={styles.email} numberOfLines={1}>{email}</Text>
+              <Text style={styles.title} numberOfLines={1}>
+                {displayName}
+              </Text>
+
+              {usernameContent}
+
+              <Text style={styles.email} numberOfLines={1}>
+                {email}
+              </Text>
             </View>
           </View>
 
           <View style={styles.bioContainer}>
             <Text style={styles.bioLabel}>BIO</Text>
-            <Text style={styles.bio}>{bio}</Text>
+
+            <Text style={styles.bio}>
+              {bio}
+            </Text>
           </View>
         </View>
 
 
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>28</Text>
-            <Text style={styles.statLabel}>REVIEWS</Text>
+            <Text style={styles.statValue}>
+              {reviewCount}
+            </Text>
+
+            <Text style={styles.statLabel}>
+              REVIEWS
+            </Text>
           </View>
 
+
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>14</Text>
-            <Text style={styles.statLabel}>WISHLIST</Text>
+            <Text style={styles.statValue}>
+              {wishlistCount}
+            </Text>
+
+            <Text style={styles.statLabel}>
+              WISHLIST
+            </Text>
           </View>
+
 
           <View style={styles.statCard}>
             <View style={styles.ratingRow}>
-              <Text style={styles.statValue}>4.9</Text>
-              <Text style={styles.star}>★</Text>
+              <Text style={styles.statValue}>
+                {averageRating}
+              </Text>
+
+              <Text style={styles.star}>
+                ★
+              </Text>
             </View>
 
-            <Text style={styles.statLabel}>RATING</Text>
+            <Text style={styles.statLabel}>
+              RATING
+            </Text>
           </View>
         </View>
 
 
-        <PrimaryButton title="Edit Profile" onPress={openEditProfile} style={styles.actionButton} />
+        <PrimaryButton
+          title="Edit Profile"
+          onPress={openEditProfile}
+          style={styles.actionButton}
+        />
+
 
         <Pressable onPress={handleLogout} style={styles.logoutButton}>
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Text style={styles.logoutText}>
+            Log Out
+          </Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -266,7 +360,7 @@ const styles = StyleSheet.create({
 
 
   // =========================================
-  // Logged-in profile
+  // Profile
   // =========================================
 
   profileCard: {
@@ -332,6 +426,13 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 24,
     fontWeight: '900',
+  },
+
+  username: {
+    marginTop: 4,
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '600',
   },
 
   email: {
@@ -525,6 +626,4 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 });
-
-
 export default ProfileScreen;
