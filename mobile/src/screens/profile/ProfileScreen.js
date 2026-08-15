@@ -12,6 +12,32 @@ function ProfileScreen() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const user = useSelector(state => state.auth.user) || {};
+  const isGuest = !user || !user.id;
+
+  if (isGuest) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.guestCard}>
+          <View style={styles.avatarShell}>
+            <View style={styles.avatarCircle}>
+              <View style={styles.userHead} />
+              <View style={styles.userBody} />
+            </View>
+          </View>
+
+          <Text style={styles.guestTitle}>Guest Player</Text>
+          <Text style={styles.guestSubtitle}>Sign in to save your reviews, wishlist, and gaming activity.</Text>
+
+          <View style={styles.guestActions}>
+            <PrimaryButton title="Log In" onPress={() => navigation.navigate('Login')} style={styles.loginButton} />
+            <Pressable onPress={() => navigation.navigate('Register')} style={styles.registerButton}>
+              <Text style={styles.registerText}>Register</Text>
+            </Pressable>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -123,6 +149,93 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: colors.primary,
+    fontWeight: '800',
+  },
+  guestCard: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 28,
+    paddingVertical: 40,
+  },
+  avatarShell: {
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: '#1ecf55',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1ecf55',
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    shadowOffset: {width: 0, height: 12},
+    elevation: 8,
+  },
+  avatarCircle: {
+    width: 170,
+    height: 170,
+    borderRadius: 85,
+    backgroundColor: '#1ecf55',
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  userHead: {
+    position: 'absolute',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f5f5f5',
+    top: 8,
+    left: 45,
+  },
+  userBody: {
+    position: 'absolute',
+    width: 120,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: '#f5f5f5',
+    bottom: 16,
+    left: 25,
+  },
+  guestTitle: {
+    marginTop: 28,
+    color: colors.text,
+    fontSize: 30,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  guestSubtitle: {
+    marginTop: 12,
+    color: colors.textMuted,
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 22,
+    maxWidth: 290,
+  },
+  guestActions: {
+    width: '100%',
+    marginTop: 28,
+    gap: 12,
+  },
+  loginButton: {
+    width: '100%',
+    borderRadius: 14,
+  },
+  registerButton: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: 14,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+    backgroundColor: 'transparent',
+  },
+  registerText: {
+    color: colors.primary,
+    fontSize: 15,
     fontWeight: '800',
   },
 });
