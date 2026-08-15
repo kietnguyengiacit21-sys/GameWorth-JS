@@ -41,7 +41,7 @@ function RootNavigator() {
   return (
     <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator
-        initialRouteName="MainTabs"
+        initialRouteName="Splash"
         screenOptions={{
           headerStyle: {backgroundColor: colors.background},
           headerTintColor: colors.text,
@@ -78,5 +78,4 @@ function RootNavigator() {
     </NavigationContainer>
   );
 }
-
 export default RootNavigator;

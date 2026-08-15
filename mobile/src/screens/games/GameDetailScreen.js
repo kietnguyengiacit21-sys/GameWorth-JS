@@ -13,32 +13,26 @@ import LoadingState from '../../components/LoadingState';
 import { fetchGameDetail } from '../../features/games/gamesSlice';
 import { colors } from '../../theme/colors';
 
-
 function GameDetailScreen(props) {
   const navigation = props.navigation;
   const route = props.route;
   const gameId = route.params.gameId;
   const scrollRef = React.useRef(null);
   const dispatch = useDispatch();
-
   const gamesState = useSelector(function (state) {
     return state.games;
   });
-
   const items = gamesState.items;
   const selectedGame = gamesState.selectedGame;
   const detailLoading = gamesState.detailLoading;
   const error = gamesState.error;
-
   function findGameById() {
     for (let i = 0; i < items.length; i++) {
       const currentGame = items[i];
-
       if (currentGame.id === gameId) {
         return currentGame;
       }
     }
-
     return null;
   }
 
@@ -61,11 +55,9 @@ function GameDetailScreen(props) {
     game = cachedGame;
   }
 
-
   React.useEffect(function () {
     dispatch(fetchGameDetail(gameId));
   }, [dispatch, gameId]);
-
 
   if (detailLoading && game == null) {
     return (
@@ -90,7 +82,6 @@ function GameDetailScreen(props) {
       </View>
     );
   }
-
   let priceText = 'Free';
   const priceNumber = Number(game.price);
   if (priceNumber !== 0) {
@@ -101,7 +92,6 @@ function GameDetailScreen(props) {
   if (game.genre != null && game.genre !== '') {
     genreText = game.genre;
   }
-
 
   let developerText = 'Not available';
   if (game.developer != null && game.developer !== '') {
@@ -128,7 +118,6 @@ function GameDetailScreen(props) {
     const imageSource = {
       uri: game.coverImageUrl,
     };
-
     heroContent = (
       <ImageBackground
         source={imageSource}
@@ -140,11 +129,9 @@ function GameDetailScreen(props) {
             <Text style={styles.price}>
               {priceText}
             </Text>
-
             <Text style={styles.title}>
               {game.title}
             </Text>
-
             <Text style={styles.heroMetadata}>
               {genreText} • {publisherText}
             </Text>
@@ -159,11 +146,9 @@ function GameDetailScreen(props) {
           <Text style={styles.price}>
             {priceText}
           </Text>
-
           <Text style={styles.title}>
             {game.title}
           </Text>
-
           <Text style={styles.heroMetadata}>
             {genreText} • {publisherText}
           </Text>
@@ -171,20 +156,17 @@ function GameDetailScreen(props) {
       </View>
     );
   }
-
   function openGameMedia() {
     navigation.navigate('GameMedia', {
       gameId: gameId,
     });
   }
 
-
   function openRequirements() {
     navigation.navigate('SystemRequirements', {
       gameId: gameId,
     });
   }
-
 
   function openCommunityRating() {
     navigation.navigate('CommunityRating', {
@@ -197,7 +179,6 @@ function GameDetailScreen(props) {
       gameId: gameId,
     });
   }
-
   return (
     <ScrollView
       ref={scrollRef}
@@ -227,7 +208,6 @@ function GameDetailScreen(props) {
             <Text style={styles.informationLabel}>
               PUBLISHER
             </Text>
-
             <Text style={styles.informationValue}>
               {publisherText}
             </Text>
@@ -240,9 +220,7 @@ function GameDetailScreen(props) {
               {releaseDateText}
             </Text>
           </View>
-
         </View>
-
         <View style={styles.actionGrid}>
           <Pressable
             onPress={openGameMedia}
@@ -258,7 +236,6 @@ function GameDetailScreen(props) {
               Screenshots and trailer
             </Text>
           </Pressable>
-
           <Pressable
             onPress={openRequirements}
             style={styles.actionCard}
@@ -273,7 +250,6 @@ function GameDetailScreen(props) {
               Minimum and recommended
             </Text>
           </Pressable>
-
           <Pressable
             onPress={openCommunityRating}
             style={styles.actionCard}
@@ -288,7 +264,6 @@ function GameDetailScreen(props) {
               Worth It ratings
             </Text>
           </Pressable>
-
           <Pressable
             onPress={openReviews}
             style={styles.actionCard}
@@ -303,63 +278,51 @@ function GameDetailScreen(props) {
               Player opinions
             </Text>
           </Pressable>
-
         </View>
-
       </View>
-
     </ScrollView>
   );
 }
-
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
   },
-
   content: {
     paddingBottom: 45,
   },
-
   hero: {
     width: '100%',
     height: 380,
   },
-
   heroFallback: {
     width: '100%',
     height: 380,
     justifyContent: 'flex-end',
     backgroundColor: colors.surfaceHigh,
   },
-
   heroOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0, 0, 0, 0.40)',
   },
-
   heroBottom: {
     paddingHorizontal: 20,
     paddingBottom: 28,
   },
-
   price: {
     marginBottom: 10,
     color: '#4EDEA3',
     fontSize: 22,
     fontWeight: '800',
   },
-
   title: {
     color: '#FFFFFF',
     fontSize: 42,
     fontWeight: '900',
     lineHeight: 48,
   },
-
   heroMetadata: {
     marginTop: 8,
     color: '#BBCABF',
@@ -370,66 +333,51 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 28,
   },
-
-
   sectionTitle: {
     color: colors.text,
     fontSize: 24,
     fontWeight: '900',
   },
-
-
   description: {
     marginTop: 13,
     color: colors.textMuted,
     fontSize: 16,
     lineHeight: 25,
   },
-
-
   divider: {
     height: 1,
     marginTop: 24,
     marginBottom: 22,
     backgroundColor: '#353436',
   },
-
   informationGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginBottom: 12,
   },
-
-
   informationItem: {
     width: '50%',
     marginBottom: 22,
     paddingRight: 12,
   },
-
-
   informationLabel: {
     color: '#BBCABF',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
   },
-
-
   informationValue: {
     marginTop: 6,
     color: colors.text,
     fontSize: 16,
     fontWeight: '800',
   },
-
   actionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginTop: 4,
   },
-
   actionCard: {
     width: '48%',
     minHeight: 145,
@@ -438,27 +386,23 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: '#201F20',
   },
-
   actionIcon: {
     color: '#4EDEA3',
     fontSize: 25,
     fontWeight: '900',
   },
-
   actionTitle: {
     marginTop: 18,
     color: colors.text,
     fontSize: 17,
     fontWeight: '800',
   },
-
   actionDescription: {
     marginTop: 6,
     color: colors.textMuted,
     fontSize: 11,
     lineHeight: 16,
   },
-
   centerState: {
     flex: 1,
     alignItems: 'center',
@@ -466,15 +410,11 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: colors.background,
   },
-
-
   errorTitle: {
     color: colors.error,
     fontSize: 20,
     fontWeight: '800',
   },
-
-
   errorText: {
     marginTop: 8,
     color: colors.textMuted,
@@ -482,6 +422,4 @@ const styles = StyleSheet.create({
   },
 
 });
-
-
 export default GameDetailScreen;

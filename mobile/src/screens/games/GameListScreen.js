@@ -1,5 +1,4 @@
 import React from 'react';
-
 import {
   FlatList,
   Pressable,
@@ -8,19 +7,13 @@ import {
   Text,
   View,
 } from 'react-native';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import { useDispatch, useSelector } from 'react-redux';
-
 import EmptyState from '../../components/EmptyState';
 import GameCard from '../../components/GameCard';
 import LoadingState from '../../components/LoadingState';
-
 import { fetchGames } from '../../features/games/gamesSlice';
-
 import { colors } from '../../theme/colors';
-
 
 function GameListScreen(props) {
   const navigation = props.navigation;
@@ -34,9 +27,7 @@ function GameListScreen(props) {
   const listLoading = gamesState.listLoading;
   const error = gamesState.error;
   function loadGames() {
-    dispatch(
-      fetchGames()
-    );
+    dispatch(fetchGames());
   }
   React.useEffect(
     function () {
@@ -47,23 +38,16 @@ function GameListScreen(props) {
     [items.length]
   );
   function reloadGames() {
-
     loadGames();
   }
   function openSearchScreen() {
-
-    navigation.navigate(
-      'SearchGame'
-    );
+    navigation.navigate('SearchGame');
   }
   function openFilterScreen() {
-    navigation.navigate(
-      'FilterGame'
-    );
+    navigation.navigate('FilterGame');
   }
   function openGameDetail(gameId) {
-    navigation.navigate(
-      'GameDetail',
+    navigation.navigate('GameDetail',
       {
         gameId: gameId
       }
@@ -74,14 +58,12 @@ function GameListScreen(props) {
     const key = gameId.toString();
     return key;
   }
-
   function renderGame(info) {
     const item = info.item;
     function handleGamePress() {
       const gameId = item.id;
       openGameDetail(gameId);
     }
-
     return (
       <GameCard
         game={item}
@@ -136,7 +118,6 @@ function GameListScreen(props) {
       </SafeAreaView>
     );
   }
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -179,72 +160,60 @@ function GameListScreen(props) {
 }
 
 const styles = StyleSheet.create({
-
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
   },
-
   header: {
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 14,
   },
-
   title: {
     color: colors.text,
     fontSize: 28,
     fontWeight: '900',
   },
-
   subtitle: {
     marginTop: 3,
     color: colors.textMuted,
     fontSize: 12,
   },
-
   actions: {
     marginTop: 13,
     flexDirection: 'row',
     gap: 10,
   },
-
   actionButton: {
     paddingHorizontal: 14,
     paddingVertical: 9,
     borderRadius: 10,
     backgroundColor: colors.surfaceHigh,
   },
-
   actionText: {
     color: colors.primary,
     fontWeight: '800',
   },
-
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
-
   errorContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
   },
-
   errorTitle: {
     color: colors.error,
     fontSize: 20,
     fontWeight: '800',
   },
-
   errorText: {
     marginTop: 8,
     color: colors.textMuted,
     textAlign: 'center',
   },
-
   retryButton: {
     marginTop: 18,
     paddingHorizontal: 20,
@@ -252,13 +221,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: colors.primary,
   },
-
   retryText: {
     color: colors.onPrimary,
     fontWeight: '800',
   },
-
 });
-
-
 export default GameListScreen;

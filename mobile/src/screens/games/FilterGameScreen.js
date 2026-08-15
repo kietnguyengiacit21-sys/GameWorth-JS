@@ -1,5 +1,4 @@
 import React from 'react';
-
 import {
   Pressable,
   ScrollView,
@@ -7,16 +6,12 @@ import {
   Text,
   View,
 } from 'react-native';
-
 import { useSelector } from 'react-redux';
-
 import GameCard from '../../components/GameCard';
 import { colors } from '../../theme/colors';
 
-
 function FilterGameScreen(props) {
   const navigation = props.navigation;
-
   const gamesState = useSelector(
     function (state) {
       return state.games;
@@ -81,22 +76,15 @@ function FilterGameScreen(props) {
   function select20To50() {
     setSelectedPrice('20_TO_50');
   }
-
   function selectOver50() {
     setSelectedPrice('OVER_50');
   }
 
-
   function resetFilters() {
-
     setSelectedGenre(null);
-
     setSelectedPlatform(null);
-
     setSelectedPrice(null);
-
     setFilteredGames([]);
-
     setHasAppliedFilter(false);
   }
 
@@ -107,12 +95,8 @@ function FilterGameScreen(props) {
     if (game.genre == null) {
       return false;
     }
-    const gameGenre =
-      game.genre.toLowerCase();
-
-    const filterGenre =
-      selectedGenre.toLowerCase();
-
+    const gameGenre =game.genre.toLowerCase();
+    const filterGenre =selectedGenre.toLowerCase();
     if (gameGenre.includes(filterGenre)) {
       return true;
     }
@@ -121,35 +105,25 @@ function FilterGameScreen(props) {
   }
 
   function gameMatchesPlatform(game) {
-
     if (selectedPlatform == null) {
       return true;
     }
-
     if (game.platform == null) {
       return false;
     }
 
-    const gamePlatform =
-      game.platform.toLowerCase();
-
-    const filterPlatform =
-      selectedPlatform.toLowerCase();
-
+    const gamePlatform = game.platform.toLowerCase();
+    const filterPlatform = selectedPlatform.toLowerCase();
     if (gamePlatform.includes(filterPlatform)) {
       return true;
     }
-
     return false;
   }
-
-
   function gameMatchesPrice(game) {
     if (selectedPrice == null) {
       return true;
     }
-    const price =
-      Number(game.price);
+    const price = Number(game.price);
     if (selectedPrice === 'UNDER_20') {
       if (price < 20) {
         return true;
@@ -157,14 +131,12 @@ function FilterGameScreen(props) {
       return false;
     }
     if (selectedPrice === '20_TO_50') {
-
       if (price >= 20 && price <= 50) {
         return true;
       }
       return false;
     }
     if (selectedPrice === 'OVER_50') {
-
       if (price > 50) {
         return true;
       }
@@ -174,33 +146,20 @@ function FilterGameScreen(props) {
   }
 
   function gameMatchesFilter(game) {
-    const genreOk =
-      gameMatchesGenre(game);
-    const platformOk =
-      gameMatchesPlatform(game);
-    const priceOk =
-      gameMatchesPrice(game);
-    if (
-      genreOk &&
-      platformOk &&
-      priceOk
-    ) {
+    const genreOk = gameMatchesGenre(game);
+    const platformOk = gameMatchesPlatform(game);
+    const priceOk = gameMatchesPrice(game);
+    if (genreOk && platformOk && priceOk) {
       return true;
     }
-
     return false;
   }
   function applyFilters() {
-
-    const result =
-      items.filter(gameMatchesFilter);
-
+    const result = items.filter(gameMatchesFilter);
     setFilteredGames(result);
-
     setHasAppliedFilter(true);
   }
   function openGameDetail(gameId) {
-
     navigation.navigate(
       'GameDetail',
       {
@@ -210,9 +169,7 @@ function FilterGameScreen(props) {
   }
   function renderFilteredGame(game) {
     function handleGamePress() {
-      openGameDetail(
-        game.id
-      );
+      openGameDetail(game.id);
     }
     return (
       <GameCard
@@ -344,7 +301,6 @@ function FilterGameScreen(props) {
             </Text>
           </Pressable>
         </View>
-
         <Text style={styles.sectionTitle}>
           Platform
         </Text>
@@ -449,7 +405,6 @@ function FilterGameScreen(props) {
             >
               $50+
             </Text>
-
           </Pressable>
         </View>
         <View style={styles.actionContainer}>
@@ -474,7 +429,6 @@ function FilterGameScreen(props) {
           hasAppliedFilter &&
           (
             <View style={styles.resultContainer}>
-
               <Text style={styles.resultTitle}>
                 Results
               </Text>
@@ -489,48 +443,34 @@ function FilterGameScreen(props) {
                   </Text>
                 )
               }
-
               {
                 filteredGames.map(
                   renderFilteredGame
                 )
               }
-
             </View>
           )
         }
-
-
       </ScrollView>
-
-
     </View>
   );
 }
-
 const styles = StyleSheet.create({
-
   screen: {
     flex: 1,
     backgroundColor: colors.background,
   },
-
-
   content: {
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 50,
   },
-
-
   title: {
     color: colors.text,
     fontSize: 26,
     fontWeight: '800',
     marginBottom: 28,
   },
-
-
   sectionTitle: {
     color: colors.text,
     fontSize: 20,
@@ -538,50 +478,36 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginTop: 10,
   },
-
-
   chipContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 9,
     marginBottom: 24,
   },
-
-
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 24,
     backgroundColor: colors.surfaceHigh,
   },
-
-
   selectedChip: {
     backgroundColor: '#15382D',
     borderWidth: 1,
     borderColor: '#4EDEA3',
   },
-
-
   chipText: {
     color: colors.text,
     fontSize: 14,
     fontWeight: '600',
   },
-
-
   selectedChipText: {
     color: '#4EDEA3',
   },
-
-
   priceContainer: {
     flexDirection: 'row',
     gap: 8,
     marginBottom: 30,
   },
-
-
   priceButton: {
     flex: 1,
     paddingVertical: 14,
@@ -589,34 +515,24 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: colors.surfaceHigh,
   },
-
-
   selectedPriceButton: {
     backgroundColor: '#15382D',
     borderWidth: 1,
     borderColor: '#4EDEA3',
   },
-
-
   priceText: {
     color: colors.text,
     fontWeight: '700',
     fontSize: 13,
   },
-
-
   selectedPriceText: {
     color: '#4EDEA3',
   },
-
-
   actionContainer: {
     flexDirection: 'row',
     gap: 12,
     marginBottom: 30,
   },
-
-
   resetButton: {
     flex: 1,
     paddingVertical: 15,
@@ -624,15 +540,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: colors.surfaceHigh,
   },
-
-
   resetText: {
     color: colors.text,
     fontSize: 16,
     fontWeight: '800',
   },
-
-
   applyButton: {
     flex: 2,
     paddingVertical: 15,
@@ -640,34 +552,24 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#4EDEA3',
   },
-
-
   applyText: {
     color: '#003824',
     fontSize: 16,
     fontWeight: '900',
   },
-
-
   resultContainer: {
     marginTop: 5,
   },
-
-
   resultTitle: {
     color: colors.text,
     fontSize: 22,
     fontWeight: '900',
   },
-
-
   resultCount: {
     color: colors.textMuted,
     marginTop: 3,
     marginBottom: 16,
   },
-
-
   noResultText: {
     color: colors.textMuted,
     textAlign: 'center',
@@ -675,6 +577,4 @@ const styles = StyleSheet.create({
   },
 
 });
-
-
 export default FilterGameScreen;
