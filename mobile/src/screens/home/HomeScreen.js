@@ -180,11 +180,7 @@ function HomeScreen(props) {
             Discovery
           </Text>
         </View>
-        <View style={styles.profileCircle}>
-          <Text style={styles.profileText}>
-            G
-          </Text>
-        </View>
+
       </View>
       <ScrollView
         style={styles.scroll}
@@ -259,7 +255,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: '#131314',
   },
   headerLeft: {
@@ -284,21 +279,6 @@ const styles = StyleSheet.create({
     color: '#E5E2E3',
     fontSize: 20,
     fontWeight: '700',
-  },
-  profileCircle: {
-    width: 34,
-    height: 34,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#3C4A42',
-    borderRadius: 17,
-    backgroundColor: '#201F20',
-  },
-  profileText: {
-    color: '#4EDEA3',
-    fontSize: 14,
-    fontWeight: '900',
   },
   scroll: {
     flex: 1,
