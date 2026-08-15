@@ -49,19 +49,26 @@ function ProfileScreen() {
           <Text style={styles.badge}>PROFILE</Text>
         </View>
         <Text style={styles.title}>{user.displayName || 'Guest Player'}</Text>
+        {user.username ? (
+          <Text style={styles.username}>@{user.username}</Text>
+        ) : null}
         <Text style={styles.email}>{user.email || 'guest@gameworth.app'}</Text>
+
+        {user.bio ? (
+          <Text style={styles.bio}>{user.bio}</Text>
+        ) : null}
 
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>28</Text>
+            <Text style={styles.statValue}>{user.reviewCount || 0}</Text>
             <Text style={styles.statLabel}>Reviews</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>14</Text>
+            <Text style={styles.statValue}>{user.wishlistCount || 0}</Text>
             <Text style={styles.statLabel}>Wishlist</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>4.9</Text>
+            <Text style={styles.statValue}>{user.averageRating || 0}</Text>
             <Text style={styles.statLabel}>Rating</Text>
           </View>
         </View>
@@ -104,10 +111,23 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '900',
   },
+  username: {
+    marginTop: 4,
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
   email: {
     marginTop: 6,
     color: colors.textMuted,
     fontSize: 15,
+  },
+  bio: {
+    marginTop: 16,
+    color: colors.text,
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: 'italic',
   },
   avatar: {
     width: 96,

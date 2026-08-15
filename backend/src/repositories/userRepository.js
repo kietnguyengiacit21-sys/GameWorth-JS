@@ -7,6 +7,10 @@ const publicUserSelect = `
     email,
     display_name AS displayName,
     avatar_url AS avatarUrl,
+    bio,
+    review_count AS reviewCount,
+    wishlist_count AS wishlistCount,
+    average_rating AS averageRating,
     DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%s') AS createdAt,
     DATE_FORMAT(updated_at, '%Y-%m-%dT%H:%i:%s') AS updatedAt
   FROM users
@@ -190,6 +194,11 @@ async function update(id, fields) {
   if (Object.prototype.hasOwnProperty.call(fields, 'avatarUrl')) {
     sets.push('avatar_url = ?');
     params.push(fields.avatarUrl || null);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(fields, 'bio')) {
+    sets.push('bio = ?');
+    params.push(fields.bio || null);
   }
 
   if (sets.length === 0) {
