@@ -52,19 +52,37 @@ function ProfileScreen() {
   }
 
 
-  // =========================================
-  // Guest
-  // =========================================
+  function getMemberSince(value) {
+    if (value == null || value === '') {
+      return '';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
 
   if (isGuest) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.header}>
           <View style={styles.logo}>
-            <Text style={styles.logoText}>GW</Text>
+            <Text style={styles.logoText}>
+              GW
+            </Text>
           </View>
 
-          <Text style={styles.headerTitle}>Profile Overview</Text>
+          <Text style={styles.headerTitle}>
+            Profile Overview
+          </Text>
         </View>
 
         <ScrollView
@@ -78,10 +96,12 @@ function ProfileScreen() {
               <View style={styles.userBody} />
             </View>
 
-            <Text style={styles.guestTitle}>Guest Player</Text>
+            <Text style={styles.guestTitle}>
+              Guest Player
+            </Text>
 
             <Text style={styles.guestSubtitle}>
-              Sign in to save your reviews, wishlist, ratings, and gaming activity.
+              Sign in to write reviews and manage your GameWorth profile.
             </Text>
           </View>
 
@@ -94,8 +114,13 @@ function ProfileScreen() {
               style={styles.loginButton}
             />
 
-            <Pressable onPress={openRegister} style={styles.registerButton}>
-              <Text style={styles.registerText}>Register</Text>
+            <Pressable
+              onPress={openRegister}
+              style={styles.registerButton}
+            >
+              <Text style={styles.registerText}>
+                Register
+              </Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -104,10 +129,6 @@ function ProfileScreen() {
   }
 
 
-  // =========================================
-  // User data
-  // =========================================
-
   let displayName = 'Player';
 
   if (user.displayName != null && user.displayName !== '') {
@@ -115,14 +136,14 @@ function ProfileScreen() {
   }
 
 
-  let username = '';
+  let username = 'Not set';
 
   if (user.username != null && user.username !== '') {
     username = user.username;
   }
 
 
-  let email = '';
+  let email = 'Not set';
 
   if (user.email != null && user.email !== '') {
     email = user.email;
@@ -139,42 +160,27 @@ function ProfileScreen() {
   let reviewCount = 0;
 
   if (user.reviewCount != null) {
-    reviewCount = user.reviewCount;
+    reviewCount = Number(user.reviewCount);
   }
 
 
-  let wishlistCount = 0;
+  let createdAt = null;
 
-  if (user.wishlistCount != null) {
-    wishlistCount = user.wishlistCount;
+  if (user.createdAt != null) {
+    createdAt = user.createdAt;
+  } else if (user.created_at != null) {
+    createdAt = user.created_at;
   }
 
+  const memberSince = getMemberSince(createdAt);
 
-  let averageRating = 0;
 
-  if (user.averageRating != null) {
-    averageRating = user.averageRating;
+  let usernameText = 'Not set';
+
+  if (username !== 'Not set') {
+    usernameText = '@' + username;
   }
 
-
-  // =========================================
-  // Username content
-  // =========================================
-
-  let usernameContent = null;
-
-  if (username !== '') {
-    usernameContent = (
-      <Text style={styles.username}>
-        @{username}
-      </Text>
-    );
-  }
-
-
-  // =========================================
-  // Avatar
-  // =========================================
 
   let avatarContent;
 
@@ -202,18 +208,39 @@ function ProfileScreen() {
   }
 
 
-  // =========================================
-  // Logged-in Profile
-  // =========================================
+  let memberSinceContent = null;
+
+  if (memberSince !== '') {
+    memberSinceContent = (
+      <>
+        <View style={styles.divider} />
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>
+            MEMBER SINCE
+          </Text>
+
+          <Text style={styles.detailValue}>
+            {memberSince}
+          </Text>
+        </View>
+      </>
+    );
+  }
+
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.logo}>
-          <Text style={styles.logoText}>GW</Text>
+          <Text style={styles.logoText}>
+            GW
+          </Text>
         </View>
 
-        <Text style={styles.headerTitle}>Profile Overview</Text>
+        <Text style={styles.headerTitle}>
+          Profile Overview
+        </Text>
       </View>
 
       <ScrollView
@@ -229,23 +256,31 @@ function ProfileScreen() {
 
             <View style={styles.identityInfo}>
               <View style={styles.badgeContainer}>
-                <Text style={styles.badge}>PROFILE</Text>
+                <Text style={styles.badge}>
+                  PROFILE
+                </Text>
               </View>
 
-              <Text style={styles.title} numberOfLines={1}>
+              <Text
+                style={styles.title}
+                numberOfLines={1}
+              >
                 {displayName}
               </Text>
 
-              {usernameContent}
-
-              <Text style={styles.email} numberOfLines={1}>
-                {email}
+              <Text
+                style={styles.username}
+                numberOfLines={1}
+              >
+                {usernameText}
               </Text>
             </View>
           </View>
 
           <View style={styles.bioContainer}>
-            <Text style={styles.bioLabel}>BIO</Text>
+            <Text style={styles.bioLabel}>
+              BIO
+            </Text>
 
             <Text style={styles.bio}>
               {bio}
@@ -254,44 +289,41 @@ function ProfileScreen() {
         </View>
 
 
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>
-              {reviewCount}
+        <Text style={styles.sectionTitle}>
+          Account Details
+        </Text>
+
+
+        <View style={styles.detailsCard}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>
+              EMAIL
             </Text>
 
-            <Text style={styles.statLabel}>
+            <Text
+              style={styles.detailValue}
+              numberOfLines={1}
+            >
+              {email}
+            </Text>
+          </View>
+
+
+          <View style={styles.divider} />
+
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>
               REVIEWS
             </Text>
-          </View>
 
-
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>
-              {wishlistCount}
-            </Text>
-
-            <Text style={styles.statLabel}>
-              WISHLIST
+            <Text style={styles.detailValue}>
+              {reviewCount}
             </Text>
           </View>
 
 
-          <View style={styles.statCard}>
-            <View style={styles.ratingRow}>
-              <Text style={styles.statValue}>
-                {averageRating}
-              </Text>
-
-              <Text style={styles.star}>
-                ★
-              </Text>
-            </View>
-
-            <Text style={styles.statLabel}>
-              RATING
-            </Text>
-          </View>
+          {memberSinceContent}
         </View>
 
 
@@ -302,7 +334,10 @@ function ProfileScreen() {
         />
 
 
-        <Pressable onPress={handleLogout} style={styles.logoutButton}>
+        <Pressable
+          onPress={handleLogout}
+          style={styles.logoutButton}
+        >
           <Text style={styles.logoutText}>
             Log Out
           </Text>
@@ -357,11 +392,6 @@ const styles = StyleSheet.create({
     paddingTop: 22,
     paddingBottom: 40,
   },
-
-
-  // =========================================
-  // Profile
-  // =========================================
 
   profileCard: {
     padding: 18,
@@ -429,16 +459,10 @@ const styles = StyleSheet.create({
   },
 
   username: {
-    marginTop: 4,
-    color: colors.primary,
+    marginTop: 5,
+    color: colors.textMuted,
     fontSize: 13,
     fontWeight: '600',
-  },
-
-  email: {
-    marginTop: 4,
-    color: colors.textMuted,
-    fontSize: 14,
   },
 
   bioContainer: {
@@ -462,55 +486,47 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
 
-
-  // =========================================
-  // Stats
-  // =========================================
-
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
+  sectionTitle: {
+    marginTop: 26,
+    marginBottom: 12,
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: '800',
   },
 
-  statCard: {
-    width: '31.5%',
-    minHeight: 104,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 16,
+  detailsCard: {
+    paddingHorizontal: 18,
+    borderRadius: 18,
     backgroundColor: colors.surface,
   },
 
-  statValue: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: '900',
-  },
-
-  statLabel: {
-    marginTop: 7,
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-
-  ratingRow: {
+  detailRow: {
+    minHeight: 62,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
 
-  star: {
-    marginLeft: 4,
-    color: colors.primary,
-    fontSize: 19,
+  detailLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.7,
   },
 
+  detailValue: {
+    flex: 1,
+    marginLeft: 25,
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'right',
+  },
 
-  // =========================================
-  // Actions
-  // =========================================
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+  },
 
   actionButton: {
     width: '100%',
@@ -530,11 +546,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
   },
-
-
-  // =========================================
-  // Guest
-  // =========================================
 
   guestContent: {
     flexGrow: 1,
