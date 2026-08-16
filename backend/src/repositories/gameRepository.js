@@ -30,11 +30,48 @@ async function findById(id) {
     `${gameSelect} WHERE id = ? LIMIT 1`,
     [id],
   );
-
   return rows[0] || null;
 }
-
+async function findMediaByGameId(gameId) {
+  const sql = `
+    SELECT
+      id,
+      game_id,
+      image_url,
+      sort_order
+    FROM game_media
+    WHERE game_id = ?
+    ORDER BY sort_order ASC
+  `;
+  const result =
+    await pool.query(
+      sql,
+      [gameId]
+    );
+  const rows =
+    result[0];
+  const mediaList = [];
+  for (
+    let i = 0;
+    i < rows.length;
+    i++
+  ) {
+    const row =
+      rows[i];
+    const media = {
+      id: row.id,
+      gameId: row.game_id,
+      imageUrl: row.image_url,
+      sortOrder: row.sort_order
+    };
+    mediaList.push(
+      media
+    );
+  }
+  return mediaList;
+}
 module.exports = {
   findAll,
   findById,
+  findMediaByGameId,
 };

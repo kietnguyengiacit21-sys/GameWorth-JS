@@ -8,11 +8,7 @@ const router = express.Router();
 
 router.get('/', gameController.getGames);
 router.get('/:gameId/reviews', reviewController.getGameReviews);
-router.post(
-  '/:gameId/reviews',
-  authMiddleware,
-  reviewController.createReview,
-);
+router.post('/:gameId/reviews',authMiddleware,reviewController.createReview,);
 router.get('/:id', gameController.getGameById);
-
+router.get('/:gameId/media',gameController.getGameMedia);
 module.exports = router;

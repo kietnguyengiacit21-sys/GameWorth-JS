@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const userRepository = require('../repositories/userRepository');
 const {createToken} = require('../utils/jwt');
@@ -45,9 +46,12 @@ async function register(req, res, next) {
 
     const token = createToken(user.id);
 
+    // Fetch complete user data including bio and stats
+    const completeUser = await userRepository.findPublicById(user.id);
+
     res.status(201).json({
       token,
-      user,
+      user: completeUser,
     });
   } catch (error) {
     next(error);
@@ -92,11 +96,88 @@ async function login(req, res, next) {
 
     const token = createToken(user.id);
 
-    delete user.passwordHash;
+    // Fetch complete user data including bio and stats
+    const completeUser = await userRepository.findPublicById(user.id);
 
     res.json({
       token,
-      user,
+      user: completeUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function forgotPassword(req, res, next) {
+  try {
+    const email = req.body.email?.trim().toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({
+        message: 'Email is required',
+      });
+    }
+
+    const user = await userRepository.findAuthByEmail(email);
+    const response = {
+      message: 'If an account exists, password reset instructions have been sent.',
+    };
+
+    if (!user) {
+      return res.json(response);
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await userRepository.deletePasswordResetTokensByUserId(user.id);
+    await userRepository.createPasswordResetToken(user.id, tokenHash, expiresAt);
+
+    console.log(`Password reset token for ${email}: ${resetToken}`);
+
+    if (process.env.NODE_ENV !== 'production') {
+      response.resetToken = resetToken;
+    }
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function resetPassword(req, res, next) {
+  try {
+    const token = req.body.token?.trim();
+    const password = req.body.password;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        message: 'Token and password are required',
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        message: 'Password must contain at least 6 characters',
+      });
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const resetRecord = await userRepository.findPasswordResetTokenByHash(tokenHash);
+
+    if (!resetRecord || new Date(resetRecord.expiresAt) < new Date()) {
+      return res.status(400).json({
+        message: 'Invalid or expired reset token',
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    await userRepository.setPassword(resetRecord.userId, passwordHash);
+    await userRepository.deletePasswordResetTokenById(resetRecord.id);
+
+    res.json({
+      message: 'Password has been reset successfully',
     });
   } catch (error) {
     next(error);
@@ -106,4 +187,6 @@ async function login(req, res, next) {
 module.exports = {
   register,
   login,
+  forgotPassword,
+  resetPassword,
 };

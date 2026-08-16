@@ -37,6 +37,10 @@ async function updateMe(req, res, next) {
       fields.avatarUrl = req.body.avatarUrl?.trim() || null;
     }
 
+    if (req.body.bio !== undefined) {
+      fields.bio = req.body.bio?.trim() || null;
+    }
+
     if (fields.email === '') {
       return res.status(400).json({
         message: 'Email cannot be empty',
@@ -68,6 +72,27 @@ async function updateMe(req, res, next) {
     }
 
     const user = await userRepository.update(req.userId, fields);
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function uploadAvatar(req, res, next) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({message: 'No file uploaded'});
+    }
+
+    const filename = req.file.filename;
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const avatarUrl = `${protocol}://${host}/uploads/${filename}`;
+
+    const user = await userRepository.update(req.userId, {
+      avatarUrl,
+    });
+
     res.json(user);
   } catch (error) {
     next(error);
