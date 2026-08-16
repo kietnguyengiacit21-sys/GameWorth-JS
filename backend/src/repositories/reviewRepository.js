@@ -1,101 +1,75 @@
 const pool = require('../config/db');
 
 
+const reviewSelect = `
+  SELECT
+    r.id,
+    r.user_id AS userId,
+    r.game_id AS gameId,
+    r.rating,
+    r.verdict,
+    r.comment,
+    u.display_name AS userDisplayName,
+    u.username AS username,
+    u.avatar_url AS userAvatarUrl,
+    g.title AS gameTitle,
+    g.genre AS gameGenre,
+    g.platform AS gamePlatform,
+    g.cover_image_url AS gameCoverImageUrl,
+    DATE_FORMAT(r.created_at, '%Y-%m-%dT%H:%i:%s') AS createdAt,
+    DATE_FORMAT(r.updated_at, '%Y-%m-%dT%H:%i:%s') AS updatedAt
+  FROM reviews r
+  JOIN users u ON u.id = r.user_id
+  JOIN games g ON g.id = r.game_id
+`;
+
+
 async function findByGameId(gameId) {
-  const sql = `
-    SELECT
-      r.id,
-      r.user_id,
-      r.game_id,
-      r.rating,
-      r.verdict,
-      r.comment,
-      r.created_at,
-      r.updated_at,
-      u.display_name,
-      u.username,
-      u.avatar_url
-    FROM reviews r
-    JOIN users u ON u.id = r.user_id
-    WHERE r.game_id = ?
-    ORDER BY r.updated_at DESC
-  `;
+  const sql = reviewSelect + ' WHERE r.game_id = ? ORDER BY r.created_at DESC';
 
   const [rows] = await pool.query(sql, [gameId]);
 
-  return rows.map(mapReview);
+  return rows;
 }
 
 
-async function findByUserId(userId) {
-  const sql = `
-    SELECT
-      r.id,
-      r.user_id,
-      r.game_id,
-      r.rating,
-      r.verdict,
-      r.comment,
-      r.created_at,
-      r.updated_at,
-      g.title,
-      g.genre,
-      g.platform,
-      g.cover_image_url
-    FROM reviews r
-    JOIN games g ON g.id = r.game_id
-    WHERE r.user_id = ?
-    ORDER BY r.updated_at DESC
-  `;
+async function findById(id) {
+  const sql = reviewSelect + ' WHERE r.id = ? LIMIT 1';
 
-  const [rows] = await pool.query(sql, [userId]);
-
-  return rows.map(mapUserReview);
-}
-
-
-async function findById(reviewId) {
-  const sql = `
-    SELECT
-      r.id,
-      r.user_id,
-      r.game_id,
-      r.rating,
-      r.verdict,
-      r.comment,
-      r.created_at,
-      r.updated_at,
-
-      u.display_name,
-      u.username,
-      u.avatar_url,
-
-      g.title,
-      g.genre,
-      g.platform,
-      g.cover_image_url
-
-    FROM reviews r
-    JOIN users u ON u.id = r.user_id
-    JOIN games g ON g.id = r.game_id
-
-    WHERE r.id = ?
-  `;
-
-  const [rows] = await pool.query(sql, [reviewId]);
+  const [rows] = await pool.query(sql, [id]);
 
   if (rows.length === 0) {
     return null;
   }
 
-  return mapReviewDetail(rows[0]);
+  return rows[0];
 }
 
 
-async function createReview(userId, gameId, rating, verdict, comment) {
+async function findByUserId(userId) {
+  const sql = reviewSelect + ' WHERE r.user_id = ? ORDER BY r.updated_at DESC';
+
+  const [rows] = await pool.query(sql, [userId]);
+
+  return rows;
+}
+
+
+async function create(reviewData) {
+  const userId = reviewData.userId;
+  const gameId = reviewData.gameId;
+  const rating = reviewData.rating;
+  const verdict = reviewData.verdict;
+  const comment = reviewData.comment;
+
   const sql = `
-    INSERT INTO reviews
-    (user_id, game_id, rating, verdict, comment)
+    INSERT INTO reviews (
+      user_id,
+      game_id,
+      rating,
+      verdict,
+      comment
+    )
     VALUES (?, ?, ?, ?, ?)
   `;
 
@@ -113,12 +87,10 @@ async function createReview(userId, gameId, rating, verdict, comment) {
 }
 
 
-async function updateReview(reviewId, rating, verdict, comment) {
-  const review = await findById(reviewId);
-
-  if (review == null) {
-    return null;
-  }
+async function update(id, userId, reviewData) {
+  const rating = reviewData.rating;
+  const verdict = reviewData.verdict;
+  const comment = reviewData.comment;
 
   const sql = `
     UPDATE reviews
@@ -126,56 +98,53 @@ async function updateReview(reviewId, rating, verdict, comment) {
       rating = ?,
       verdict = ?,
       comment = ?
-    WHERE id = ?
+    WHERE id = ? AND user_id = ?
   `;
 
-  await pool.query(sql, [
+  const [result] = await pool.query(sql, [
     rating,
     verdict,
     comment,
-    reviewId,
+    id,
+    userId,
   ]);
 
-  await updateUserReviewStats(review.userId);
+  if (result.affectedRows === 0) {
+    return null;
+  }
 
-  return findById(reviewId);
+  await updateUserReviewStats(userId);
+
+  return findById(id);
 }
 
 
-async function deleteReview(reviewId) {
-  const review = await findById(reviewId);
+async function remove(id, userId) {
+  const sql = 'DELETE FROM reviews WHERE id = ? AND user_id = ?';
 
-  if (review == null) {
-    return false;
+  const [result] = await pool.query(sql, [id, userId]);
+
+  if (result.affectedRows > 0) {
+    await updateUserReviewStats(userId);
+    return true;
   }
 
-  const sql = `
-    DELETE FROM reviews
-    WHERE id = ?
-  `;
-
-  await pool.query(sql, [reviewId]);
-
-  await updateUserReviewStats(review.userId);
-
-  return true;
+  return false;
 }
 
 
 async function getGameSummary(gameId) {
   const sql = `
     SELECT
-      COUNT(*) AS review_count,
-      COALESCE(AVG(rating), 0) AS average_rating,
-      SUM(CASE WHEN verdict = 'WORTH_IT' THEN 1 ELSE 0 END) AS worth_it_count,
-      SUM(CASE WHEN verdict = 'NOT_WORTH_IT' THEN 1 ELSE 0 END) AS not_worth_it_count,
-
-      SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) AS five_star_count,
-      SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) AS four_star_count,
-      SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) AS three_star_count,
-      SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) AS two_star_count,
-      SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) AS one_star_count
-
+      COUNT(*) AS reviewCount,
+      COALESCE(AVG(rating), 0) AS averageRating,
+      SUM(CASE WHEN verdict = 'WORTH_IT' THEN 1 ELSE 0 END) AS worthItCount,
+      SUM(CASE WHEN verdict = 'NOT_WORTH_IT' THEN 1 ELSE 0 END) AS notWorthItCount,
+      SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) AS fiveStarCount,
+      SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) AS fourStarCount,
+      SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) AS threeStarCount,
+      SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) AS twoStarCount,
+      SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) AS oneStarCount
     FROM reviews
     WHERE game_id = ?
   `;
@@ -184,8 +153,8 @@ async function getGameSummary(gameId) {
 
   const row = rows[0];
 
-  const reviewCount = Number(row.review_count);
-  const worthItCount = Number(row.worth_it_count);
+  const reviewCount = Number(row.reviewCount);
+  const worthItCount = Number(row.worthItCount);
 
   let worthItPercentage = 0;
 
@@ -195,18 +164,17 @@ async function getGameSummary(gameId) {
 
   return {
     reviewCount: reviewCount,
-    averageRating: Number(Number(row.average_rating).toFixed(1)),
+    averageRating: Number(Number(row.averageRating).toFixed(1)),
     worthItCount: worthItCount,
-    notWorthItCount: Number(row.not_worth_it_count),
+    notWorthItCount: Number(row.notWorthItCount),
     worthItPercentage: worthItPercentage,
-    fiveStarCount: Number(row.five_star_count),
-    fourStarCount: Number(row.four_star_count),
-    threeStarCount: Number(row.three_star_count),
-    twoStarCount: Number(row.two_star_count),
-    oneStarCount: Number(row.one_star_count),
+    fiveStarCount: Number(row.fiveStarCount),
+    fourStarCount: Number(row.fourStarCount),
+    threeStarCount: Number(row.threeStarCount),
+    twoStarCount: Number(row.twoStarCount),
+    oneStarCount: Number(row.oneStarCount),
   };
 }
-
 
 async function updateUserReviewStats(userId) {
   const sql = `
@@ -225,90 +193,15 @@ async function updateUserReviewStats(userId) {
     WHERE id = ?
   `;
 
-  await pool.query(sql, [
-    userId,
-    userId,
-    userId,
-  ]);
+  await pool.query(sql, [userId, userId, userId]);
 }
-
-
-function mapReview(row) {
-  return {
-    id: row.id,
-    userId: row.user_id,
-    gameId: row.game_id,
-    rating: row.rating,
-    verdict: row.verdict,
-    comment: row.comment,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-
-    user: {
-      displayName: row.display_name,
-      username: row.username,
-      avatarUrl: row.avatar_url,
-    },
-  };
-}
-
-
-function mapUserReview(row) {
-  return {
-    id: row.id,
-    userId: row.user_id,
-    gameId: row.game_id,
-    rating: row.rating,
-    verdict: row.verdict,
-    comment: row.comment,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-
-    game: {
-      id: row.game_id,
-      title: row.title,
-      genre: row.genre,
-      platform: row.platform,
-      coverImageUrl: row.cover_image_url,
-    },
-  };
-}
-
-
-function mapReviewDetail(row) {
-  return {
-    id: row.id,
-    userId: row.user_id,
-    gameId: row.game_id,
-    rating: row.rating,
-    verdict: row.verdict,
-    comment: row.comment,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-
-    user: {
-      displayName: row.display_name,
-      username: row.username,
-      avatarUrl: row.avatar_url,
-    },
-
-    game: {
-      id: row.game_id,
-      title: row.title,
-      genre: row.genre,
-      platform: row.platform,
-      coverImageUrl: row.cover_image_url,
-    },
-  };
-}
-
 
 module.exports = {
   findByGameId,
-  findByUserId,
   findById,
-  createReview,
-  updateReview,
-  deleteReview,
+  findByUserId,
+  create,
+  update,
+  remove,
   getGameSummary,
 };

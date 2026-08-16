@@ -1,33 +1,58 @@
 import {apiRequest} from './api';
 
+
 export function getGameReviews(gameId) {
-  return apiRequest(`/games/${gameId}/reviews`);
+  const path = '/games/' + gameId + '/reviews';
+  return apiRequest(path);
 }
+
+
+export function getCommunityRating(gameId) {
+  const path = '/games/' + gameId + '/reviews/summary';
+  return apiRequest(path);
+}
+
 
 export function getReviewById(reviewId) {
-  return apiRequest(`/reviews/${reviewId}`);
+  const path = '/reviews/' + reviewId;
+  return apiRequest(path);
 }
 
-export function createReview(gameId, request) {
-  return apiRequest(`/games/${gameId}/reviews`, {
+
+export function getMyReviews(token) {
+  return apiRequest('/reviews/mine', {
+    token: token,
+  });
+}
+
+
+export function createReview(gameId, request, token) {
+  const path = '/games/' + gameId + '/reviews';
+
+  return apiRequest(path, {
     method: 'POST',
+    token: token,
     body: JSON.stringify(request),
   });
 }
 
-export function updateReview(reviewId, request) {
-  return apiRequest(`/reviews/${reviewId}`, {
+
+export function updateReview(reviewId, request, token) {
+  const path = '/reviews/' + reviewId;
+
+  return apiRequest(path, {
     method: 'PUT',
+    token: token,
     body: JSON.stringify(request),
   });
 }
 
-export function deleteReview(reviewId) {
-  return apiRequest(`/reviews/${reviewId}`, {
-    method: 'DELETE',
-  });
-}
 
-export function getMyReviews() {
-  return apiRequest('/users/me/reviews');
+export function deleteReview(reviewId, token) {
+  const path = '/reviews/' + reviewId;
+
+  return apiRequest(path, {
+    method: 'DELETE',
+    token: token,
+  });
 }

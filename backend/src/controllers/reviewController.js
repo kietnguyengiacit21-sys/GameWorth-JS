@@ -1,158 +1,237 @@
+const gameRepository = require('../repositories/gameRepository');
 const reviewRepository = require('../repositories/reviewRepository');
 
 
-async function getReviewsByGame(request, response, next) {
+function validateReview(body) {
+  const rating = Number(body.rating);
+  const verdict = body.verdict;
+
+  let comment = null;
+
+  if (body.comment != null) {
+    comment = body.comment.trim();
+
+    if (comment === '') {
+      comment = null;
+    }
+  }
+
+
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return {
+      error: 'Rating must be an integer from 1 to 5',
+    };
+  }
+
+
+  if (verdict !== 'WORTH_IT' && verdict !== 'NOT_WORTH_IT') {
+    return {
+      error: 'Verdict must be WORTH_IT or NOT_WORTH_IT',
+    };
+  }
+
+
+  return {
+    rating: rating,
+    verdict: verdict,
+    comment: comment,
+  };
+}
+
+
+async function getGameReviews(req, res, next) {
   try {
-    const gameId = Number(request.params.gameId);
+    const gameId = Number(req.params.gameId);
+
+    const game = await gameRepository.findById(gameId);
+
+    if (game == null) {
+      res.status(404).json({
+        message: 'Game not found',
+      });
+
+      return;
+    }
 
     const reviews = await reviewRepository.findByGameId(gameId);
 
-    response.json(reviews);
+    res.json(reviews);
   } catch (error) {
     next(error);
   }
 }
 
 
-async function getReviewsByUser(request, response, next) {
+async function getGameReviewSummary(req, res, next) {
   try {
-    const userId = Number(request.params.userId);
+    const gameId = Number(req.params.gameId);
+
+    const game = await gameRepository.findById(gameId);
+
+    if (game == null) {
+      res.status(404).json({
+        message: 'Game not found',
+      });
+
+      return;
+    }
+
+    const summary = await reviewRepository.getGameSummary(gameId);
+
+    res.json(summary);
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+async function getMyReviews(req, res, next) {
+  try {
+    const userId = Number(req.userId);
 
     const reviews = await reviewRepository.findByUserId(userId);
 
-    response.json(reviews);
+    res.json(reviews);
   } catch (error) {
     next(error);
   }
 }
 
 
-async function getReviewDetail(request, response, next) {
+async function getReviewById(req, res, next) {
   try {
-    const reviewId = Number(request.params.id);
+    const reviewId = Number(req.params.id);
 
     const review = await reviewRepository.findById(reviewId);
 
     if (review == null) {
-      response.status(404).json({
+      res.status(404).json({
         message: 'Review not found',
       });
 
       return;
     }
 
-    response.json(review);
+    res.json(review);
   } catch (error) {
     next(error);
   }
 }
 
 
-async function createReview(request, response, next) {
+async function createReview(req, res, next) {
   try {
-    const userId = Number(request.body.userId);
-    const gameId = Number(request.body.gameId);
-    const rating = Number(request.body.rating);
-    const verdict = request.body.verdict;
+    const gameId = Number(req.params.gameId);
 
-    let comment = '';
+    const game = await gameRepository.findById(gameId);
 
-    if (request.body.comment != null) {
-      comment = request.body.comment.trim();
-    }
-
-
-    if (userId <= 0 || gameId <= 0) {
-      response.status(400).json({
-        message: 'User and game are required',
+    if (game == null) {
+      res.status(404).json({
+        message: 'Game not found',
       });
 
       return;
     }
 
 
-    if (rating < 1 || rating > 5) {
-      response.status(400).json({
-        message: 'Rating must be between 1 and 5',
+    const validated = validateReview(req.body);
+
+    if (validated.error != null) {
+      res.status(400).json({
+        message: validated.error,
       });
 
       return;
     }
 
 
-    if (verdict !== 'WORTH_IT' && verdict !== 'NOT_WORTH_IT') {
-      response.status(400).json({
-        message: 'Invalid verdict',
-      });
+    try {
+      const reviewData = {
+        userId: req.userId,
+        gameId: gameId,
+        rating: validated.rating,
+        verdict: validated.verdict,
+        comment: validated.comment,
+      };
 
-      return;
+      const review = await reviewRepository.create(reviewData);
+
+      res.status(201).json(review);
+    } catch (error) {
+      if (error.code === 'ER_DUP_ENTRY') {
+        res.status(409).json({
+          message: 'You already reviewed this game',
+        });
+
+        return;
+      }
+
+      throw error;
     }
-
-
-    const review = await reviewRepository.createReview(
-      userId,
-      gameId,
-      rating,
-      verdict,
-      comment
-    );
-
-    response.status(201).json(review);
   } catch (error) {
-    if (error.code === 'ER_DUP_ENTRY') {
-      response.status(409).json({
-        message: 'You already reviewed this game',
-      });
-
-      return;
-    }
-
     next(error);
   }
 }
 
 
-async function updateReview(request, response, next) {
+async function updateReview(req, res, next) {
   try {
-    const reviewId = Number(request.params.id);
-    const rating = Number(request.body.rating);
-    const verdict = request.body.verdict;
-
-    let comment = '';
-
-    if (request.body.comment != null) {
-      comment = request.body.comment.trim();
-    }
-
-
-    if (rating < 1 || rating > 5) {
-      response.status(400).json({
-        message: 'Rating must be between 1 and 5',
+    const reviewId = Number(req.params.id);
+    const existing = await reviewRepository.findById(reviewId);
+    if (existing == null) {
+      res.status(404).json({
+        message: 'Review not found',
       });
 
       return;
     }
 
-
-    if (verdict !== 'WORTH_IT' && verdict !== 'NOT_WORTH_IT') {
-      response.status(400).json({
-        message: 'Invalid verdict',
+    if (Number(existing.userId) !== Number(req.userId)) {
+      res.status(403).json({
+        message: 'You can only edit your own review',
       });
 
       return;
     }
 
+    const validated = validateReview(req.body);
 
-    const review = await reviewRepository.updateReview(
+    if (validated.error != null) {
+      res.status(400).json({
+        message: validated.error,
+      });
+
+      return;
+    }
+
+    const reviewData = {
+      rating: validated.rating,
+      verdict: validated.verdict,
+      comment: validated.comment,
+    };
+
+    const review = await reviewRepository.update(
       reviewId,
-      rating,
-      verdict,
-      comment
+      req.userId,
+      reviewData
     );
 
 
-    if (review == null) {
-      response.status(404).json({
+    res.json(review);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function deleteReview(req, res, next) {
+  try {
+    const reviewId = Number(req.params.id);
+
+    const existing = await reviewRepository.findById(reviewId);
+
+
+    if (existing == null) {
+      res.status(404).json({
         message: 'Review not found',
       });
 
@@ -160,57 +239,28 @@ async function updateReview(request, response, next) {
     }
 
 
-    response.json(review);
-  } catch (error) {
-    next(error);
-  }
-}
-
-
-async function deleteReview(request, response, next) {
-  try {
-    const reviewId = Number(request.params.id);
-
-    const deleted = await reviewRepository.deleteReview(reviewId);
-
-
-    if (!deleted) {
-      response.status(404).json({
-        message: 'Review not found',
+    if (Number(existing.userId) !== Number(req.userId)) {
+      res.status(403).json({
+        message: 'You can only delete your own review',
       });
 
       return;
     }
 
+    await reviewRepository.remove(reviewId, req.userId);
 
-    response.json({
-      message: 'Review deleted successfully',
-    });
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
 }
-
-
-async function getCommunityRating(request, response, next) {
-  try {
-    const gameId = Number(request.params.gameId);
-
-    const summary = await reviewRepository.getGameSummary(gameId);
-
-    response.json(summary);
-  } catch (error) {
-    next(error);
-  }
-}
-
 
 module.exports = {
-  getReviewsByGame,
-  getReviewsByUser,
-  getReviewDetail,
+  getGameReviews,
+  getGameReviewSummary,
+  getMyReviews,
+  getReviewById,
   createReview,
   updateReview,
   deleteReview,
-  getCommunityRating,
 };

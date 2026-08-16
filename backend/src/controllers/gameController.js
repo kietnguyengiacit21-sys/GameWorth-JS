@@ -12,33 +12,24 @@ async function getGames(req, res, next) {
 async function getGameById(req, res, next) {
   try {
     const game = await gameRepository.findById(req.params.id);
+
     if (!game) {
       return res.status(404).json({
         message: 'Game not found',
       });
     }
+
     res.json(game);
   } catch (error) {
     next(error);
   }
 }
-async function getGameMedia(
-  request,
-  response,
-  next
-) {
+async function getGameMedia(req, res, next) {
   try {
-    const gameId =
-      Number(
-        request.params.gameId
-      );
-    const mediaList =
-      await gameRepository.findMediaByGameId(
-        gameId
-      );
-    response.json(
-      mediaList
-    );
+    const gameId = Number(req.params.gameId);
+    const mediaList = await gameRepository.findMediaByGameId(gameId);
+
+    res.json(mediaList);
   } catch (error) {
     next(error);
   }
