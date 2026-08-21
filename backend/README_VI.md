@@ -32,7 +32,17 @@ Mở `.env` và sửa:
 ```env
 DB_PASSWORD=MAT_KHAU_MYSQL_CUA_BAN
 JWT_SECRET=mot_chuoi_bi_mat_dai
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=email-cua-ban@example.com
+SMTP_PASSWORD=mat-khau-ung-dung
+MAIL_FROM=GameWorth <email-cua-ban@example.com>
 ```
+
+Nếu chưa cấu hình SMTP trong môi trường development, mã xác thực sẽ được in
+trong log backend và trả thêm ở field `verificationCode` để test trên mobile.
+Production cần cấu hình đầy đủ SMTP; mã không được trả về trong response.
 
 ## 3. Tạo / cập nhật database
 
@@ -79,6 +89,7 @@ GET /api/games/:id
 
 ```text
 POST /api/auth/register
+POST /api/auth/verify-register
 POST /api/auth/login
 ```
 
@@ -94,6 +105,19 @@ Register body:
 ```
 
 `username` có thể bỏ.
+
+`POST /api/auth/register` chỉ tạo yêu cầu đăng ký và gửi mã 6 chữ số qua email.
+Sau đó gọi `POST /api/auth/verify-register`:
+
+```json
+{
+  "email": "kiet@example.com",
+  "code": "123456"
+}
+```
+
+Xác nhận thành công sẽ trả response đăng nhập gồm `token` và `user`. Mã có
+hiệu lực trong 10 phút.
 
 Login chấp nhận `email`, `username`, hoặc `identifier`.
 

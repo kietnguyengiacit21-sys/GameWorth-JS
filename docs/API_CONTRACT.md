@@ -18,6 +18,26 @@ Request:
 }
 ```
 
+Response (mã được gửi tới email, tài khoản chưa được tạo):
+
+```json
+{
+  "message": "Verification code sent to your email",
+  "email": "minh@example.com"
+}
+```
+
+### POST `/api/auth/verify-register`
+
+Request:
+
+```json
+{
+  "email": "minh@example.com",
+  "code": "123456"
+}
+```
+
 Response:
 
 ```json
@@ -44,7 +64,7 @@ Request:
 }
 ```
 
-Response: same shape as register.
+Response: same shape as `verify-register`.
 
 ## User
 

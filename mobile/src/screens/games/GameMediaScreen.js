@@ -3,7 +3,6 @@ import React from 'react';
 import {
   Dimensions,
   Image,
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,13 +13,14 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 
 import LoadingState from '../../components/LoadingState';
-import { fetchGameDetail, fetchGameMedia } from '../../features/games/gamesSlice';
+import {
+  fetchGameDetail,
+  fetchGameMedia,
+} from '../../features/games/gamesSlice';
 import { colors } from '../../theme/colors';
-
 
 const screenWidth = Dimensions.get('window').width;
 const galleryWidth = screenWidth - 40;
-
 
 function GameMediaScreen(props) {
   const route = props.route;
@@ -43,12 +43,6 @@ function GameMediaScreen(props) {
   const setCurrentIndex = indexState[1];
 
   const heroScrollRef = React.useRef(null);
-
-
-  // =========================================
-  // TÌM GAME
-  // =========================================
-
   function findGameById() {
     for (let i = 0; i < items.length; i++) {
       const currentGame = items[i];
@@ -61,7 +55,6 @@ function GameMediaScreen(props) {
     return null;
   }
 
-
   const cachedGame = findGameById();
 
   let game = null;
@@ -72,11 +65,6 @@ function GameMediaScreen(props) {
     game = cachedGame;
   }
 
-
-  // =========================================
-  // LOAD DATA
-  // =========================================
-
   React.useEffect(function () {
     setCurrentIndex(0);
     dispatch(fetchGameMedia(gameId));
@@ -85,11 +73,6 @@ function GameMediaScreen(props) {
       dispatch(fetchGameDetail(gameId));
     }
   }, [dispatch, gameId]);
-
-
-  // =========================================
-  // HERO IMAGE
-  // =========================================
 
   function renderHeroImage(media) {
     const imageSource = {
@@ -103,12 +86,15 @@ function GameMediaScreen(props) {
         style={styles.heroImage}
         fadeDuration={0}
         onError={function (event) {
-          console.log('HERO IMAGE ERROR:', media.imageUrl, event.nativeEvent);
+          console.log(
+            'HERO IMAGE ERROR:',
+            media.imageUrl,
+            event.nativeEvent
+          );
         }}
       />
     );
   }
-
 
   function handleHeroScroll(event) {
     const offsetX = event.nativeEvent.contentOffset.x;
@@ -118,12 +104,6 @@ function GameMediaScreen(props) {
       setCurrentIndex(newIndex);
     }
   }
-
-
-  // =========================================
-  // THUMBNAIL
-  // =========================================
-
   function selectMedia(index) {
     setCurrentIndex(index);
 
@@ -136,24 +116,23 @@ function GameMediaScreen(props) {
     }
   }
 
-
   function renderThumbnail(media, index) {
     let thumbnailStyle = styles.thumbnail;
 
     if (index === currentIndex) {
-      thumbnailStyle = [styles.thumbnail, styles.selectedThumbnail];
+      thumbnailStyle = [
+        styles.thumbnail,
+        styles.selectedThumbnail,
+      ];
     }
-
 
     function handleThumbnailPress() {
       selectMedia(index);
     }
 
-
     const imageSource = {
       uri: media.imageUrl,
     };
-
 
     return (
       <Pressable
@@ -166,17 +145,16 @@ function GameMediaScreen(props) {
           style={styles.thumbnailImage}
           fadeDuration={0}
           onError={function (event) {
-            console.log('THUMBNAIL ERROR:', media.imageUrl, event.nativeEvent);
+            console.log(
+              'THUMBNAIL ERROR:',
+              media.imageUrl,
+              event.nativeEvent
+            );
           }}
         />
       </Pressable>
     );
   }
-
-
-  // =========================================
-  // SCREENSHOT GRID
-  // =========================================
 
   function renderScreenshot(media) {
     const imageSource = {
@@ -190,45 +168,21 @@ function GameMediaScreen(props) {
         style={styles.screenshot}
         fadeDuration={0}
         onError={function (event) {
-          console.log('SCREENSHOT ERROR:', media.imageUrl, event.nativeEvent);
+          console.log(
+            'SCREENSHOT ERROR:',
+            media.imageUrl,
+            event.nativeEvent
+          );
         }}
       />
     );
   }
-
-
-  // =========================================
-  // TRAILER
-  // =========================================
-
-  async function openTrailer() {
-    if (game == null) {
-      return;
-    }
-
-    if (game.trailerUrl == null || game.trailerUrl === '') {
-      return;
-    }
-
-    await Linking.openURL(game.trailerUrl);
-  }
-
-
-  // =========================================
-  // LOADING
-  // =========================================
 
   if (mediaLoading && mediaItems.length === 0) {
     return (
       <LoadingState message="Loading game media..." />
     );
   }
-
-
-  // =========================================
-  // GAME KHÔNG TỒN TẠI
-  // =========================================
-
   if (game == null) {
     return (
       <View style={styles.center}>
@@ -238,11 +192,6 @@ function GameMediaScreen(props) {
       </View>
     );
   }
-
-
-  // =========================================
-  // GAME CHƯA CÓ MEDIA
-  // =========================================
 
   if (mediaItems.length === 0) {
     let message = 'No media available for this game.';
@@ -263,31 +212,7 @@ function GameMediaScreen(props) {
       </View>
     );
   }
-
-
-  // =========================================
-  // TRAILER
-  // =========================================
-
-  let trailerText = 'Watch Trailer';
-  let trailerButtonStyle = styles.trailerButton;
-
-  if (game.trailerUrl == null || game.trailerUrl === '') {
-    trailerText = 'Trailer Unavailable';
-    trailerButtonStyle = [styles.trailerButton, styles.disabledTrailerButton];
-  }
-
-
-  // =========================================
-  // CHỈ LẤY 4 ẢNH CHO GRID
-  // =========================================
-
   const screenshotItems = mediaItems.slice(0, 4);
-
-
-  // =========================================
-  // RENDER
-  // =========================================
 
   return (
     <ScrollView
@@ -295,7 +220,6 @@ function GameMediaScreen(props) {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-
       <Text style={styles.gameTitle}>
         {game.title}
       </Text>
@@ -304,9 +228,7 @@ function GameMediaScreen(props) {
         Media Gallery
       </Text>
 
-
       <View style={styles.heroContainer}>
-
         <ScrollView
           ref={heroScrollRef}
           horizontal={true}
@@ -318,15 +240,12 @@ function GameMediaScreen(props) {
           {mediaItems.map(renderHeroImage)}
         </ScrollView>
 
-
         <View style={styles.counter}>
           <Text style={styles.counterText}>
             {currentIndex + 1} / {mediaItems.length}
           </Text>
         </View>
-
       </View>
-
 
       <ScrollView
         horizontal={true}
@@ -337,33 +256,18 @@ function GameMediaScreen(props) {
         {mediaItems.map(renderThumbnail)}
       </ScrollView>
 
-
       <Text style={styles.sectionTitle}>
         Screenshots
       </Text>
 
-
       <View style={styles.screenshotGrid}>
         {screenshotItems.map(renderScreenshot)}
       </View>
-
-
-      <Pressable
-        onPress={openTrailer}
-        style={trailerButtonStyle}
-      >
-        <Text style={styles.trailerText}>
-          ▶  {trailerText}
-        </Text>
-      </Pressable>
-
     </ScrollView>
   );
 }
 
-
 const styles = StyleSheet.create({
-
   screen: {
     flex: 1,
     backgroundColor: colors.background,
@@ -467,24 +371,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceHigh,
   },
 
-  trailerButton: {
-    marginTop: 22,
-    paddingVertical: 17,
-    alignItems: 'center',
-    borderRadius: 30,
-    backgroundColor: '#4EDEA3',
-  },
-
-  disabledTrailerButton: {
-    opacity: 0.4,
-  },
-
-  trailerText: {
-    color: '#003824',
-    fontSize: 18,
-    fontWeight: '900',
-  },
-
   center: {
     flex: 1,
     justifyContent: 'center',
@@ -505,6 +391,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '800',
   },
-
 });
+
 export default GameMediaScreen;

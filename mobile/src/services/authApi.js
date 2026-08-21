@@ -14,6 +14,13 @@ export function register(request) {
   });
 }
 
+export function verifyRegistration(request) {
+  return apiRequest('/auth/verify-register', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+
 export function forgotPassword(request) {
   return apiRequest('/auth/forgot-password', {
     method: 'POST',

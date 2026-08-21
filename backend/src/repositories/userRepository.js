@@ -16,6 +16,23 @@ const publicUserSelect = `
   FROM users
 `;
 
+async function ensureRegistrationCodesTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS registration_codes (
+      id bigint NOT NULL AUTO_INCREMENT,
+      username varchar(50) DEFAULT NULL,
+      email varchar(150) NOT NULL,
+      password_hash varchar(255) NOT NULL,
+      display_name varchar(100) NOT NULL,
+      code_hash varchar(64) NOT NULL,
+      expires_at datetime NOT NULL,
+      created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_registration_codes_email (email)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  `);
+}
+
 async function findPublicById(id) {
   const [rows] = await pool.query(
     `${publicUserSelect} WHERE id = ? LIMIT 1`,
@@ -112,6 +129,61 @@ async function deletePasswordResetTokensByUserId(userId) {
     `DELETE FROM password_reset_tokens WHERE user_id = ?`,
     [userId],
   );
+}
+
+async function deleteRegistrationCodesByEmail(email) {
+  await pool.query(
+    `DELETE FROM registration_codes WHERE email = ?`,
+    [email],
+  );
+}
+
+async function createRegistrationCode({
+  username,
+  email,
+  passwordHash,
+  displayName,
+  codeHash,
+  expiresAt,
+}) {
+  await pool.query(
+    `
+      INSERT INTO registration_codes (
+        username,
+        email,
+        password_hash,
+        display_name,
+        code_hash,
+        expires_at
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `,
+    [username || null, email, passwordHash, displayName, codeHash, expiresAt],
+  );
+}
+
+async function findRegistrationCodeByEmail(email) {
+  const [rows] = await pool.query(
+    `
+      SELECT
+        id,
+        username,
+        email,
+        password_hash AS passwordHash,
+        display_name AS displayName,
+        code_hash AS codeHash,
+        expires_at AS expiresAt
+      FROM registration_codes
+      WHERE email = ?
+      LIMIT 1
+    `,
+    [email],
+  );
+
+  return rows[0] || null;
+}
+
+async function deleteRegistrationCodeById(id) {
+  await pool.query(`DELETE FROM registration_codes WHERE id = ?`, [id]);
 }
 
 async function setPassword(userId, passwordHash) {
@@ -216,6 +288,7 @@ async function update(id, fields) {
 }
 
 module.exports = {
+  ensureRegistrationCodesTable,
   findPublicById,
   findAuthByIdentifier,
   findAuthByEmail,
@@ -223,6 +296,10 @@ module.exports = {
   findPasswordResetTokenByHash,
   deletePasswordResetTokenById,
   deletePasswordResetTokensByUserId,
+  deleteRegistrationCodesByEmail,
+  createRegistrationCode,
+  findRegistrationCodeByEmail,
+  deleteRegistrationCodeById,
   setPassword,
   emailExists,
   usernameExists,

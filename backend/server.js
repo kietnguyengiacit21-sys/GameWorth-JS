@@ -1,14 +1,17 @@
-require('dotenv').config();
-
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+
+require('dotenv').config({
+  path: path.join(__dirname, '.env'),
+});
 
 const pool = require('./src/config/db');
 const gameRoutes = require('./src/routes/gameRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const reviewRoutes = require('./src/routes/reviewRoutes');
-const path = require('path');
+const {ensureRegistrationCodesTable} = require('./src/repositories/userRepository');
 const app = express();
 
 const imageFolderPath = path.join(
@@ -68,6 +71,13 @@ app.use((error, req, res, next) => {
   });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`GameWorth Node API running on http://localhost:${PORT}`);
-});
+ensureRegistrationCodesTable()
+  .then(() => {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`GameWorth Node API running on http://localhost:${PORT}`);
+    });
+  })
+  .catch(error => {
+    console.error('Unable to initialize authentication tables', error);
+    process.exitCode = 1;
+  });

@@ -3,6 +3,9 @@ const crypto = require('crypto');
 
 const userRepository = require('../repositories/userRepository');
 const {createToken} = require('../utils/jwt');
+const {sendRegistrationCode} = require('../services/emailService');
+
+const REGISTRATION_CODE_EXPIRY_MINUTES = 10;
 
 async function register(req, res, next) {
   try {
@@ -36,22 +39,82 @@ async function register(req, res, next) {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    const code = crypto.randomInt(100000, 1000000).toString();
+    const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+    const expiresAt = new Date(
+      Date.now() + REGISTRATION_CODE_EXPIRY_MINUTES * 60 * 1000,
+    );
 
-    const user = await userRepository.create({
+    await userRepository.deleteRegistrationCodesByEmail(email);
+    await userRepository.createRegistrationCode({
       username,
       email,
       passwordHash,
       displayName,
+      codeHash,
+      expiresAt,
     });
 
-    const token = createToken(user.id);
+    const sentByEmail = await sendRegistrationCode(email, code);
+    const response = {
+      message: 'Verification code sent to your email',
+      email,
+    };
 
-    // Fetch complete user data including bio and stats
-    const completeUser = await userRepository.findPublicById(user.id);
+    if (!sentByEmail && process.env.NODE_ENV !== 'production') {
+      response.verificationCode = code;
+    }
+
+    res.status(202).json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function verifyRegistration(req, res, next) {
+  try {
+    const email = req.body.email?.trim().toLowerCase();
+    const code = req.body.code?.trim();
+
+    if (!email || !/^\d{6}$/.test(code || '')) {
+      return res.status(400).json({
+        message: 'Email and a 6-digit verification code are required',
+      });
+    }
+
+    const registration = await userRepository.findRegistrationCodeByEmail(email);
+
+    if (
+      !registration ||
+      new Date(registration.expiresAt) < new Date() ||
+      crypto.createHash('sha256').update(code).digest('hex') !== registration.codeHash
+    ) {
+      return res.status(400).json({
+        message: 'Invalid or expired verification code',
+      });
+    }
+
+    if (await userRepository.emailExists(email)) {
+      await userRepository.deleteRegistrationCodeById(registration.id);
+      return res.status(409).json({message: 'Email already exists'});
+    }
+
+    if (registration.username && await userRepository.usernameExists(registration.username)) {
+      return res.status(409).json({message: 'Username already exists'});
+    }
+
+    const user = await userRepository.create({
+      username: registration.username,
+      email: registration.email,
+      passwordHash: registration.passwordHash,
+      displayName: registration.displayName,
+    });
+
+    await userRepository.deleteRegistrationCodeById(registration.id);
 
     res.status(201).json({
-      token,
-      user: completeUser,
+      token: createToken(user.id),
+      user,
     });
   } catch (error) {
     next(error);
@@ -186,6 +249,7 @@ async function resetPassword(req, res, next) {
 
 module.exports = {
   register,
+  verifyRegistration,
   login,
   forgotPassword,
   resetPassword,
